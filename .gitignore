@@ -1,0 +1,9 @@
+.idea
+__pycache__
+venv
+files
+config.py
+.env
+log
+*.csv
+*.xlsx
