@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 def get_random_proxy():
     """获取随机的IP地址"""
-    url = 'http://47.107.246.172:5555/random'
+    url = 'http://49.235.2.212:5555/random'
     response = requests.get(url, timeout=10)
     datum = json.loads(response.text)
     if datum['status'] == 'success':
