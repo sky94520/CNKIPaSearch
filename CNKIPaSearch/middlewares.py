@@ -106,7 +106,7 @@ class CookieMiddleware(object):
         params.update(**kwargs)
         url = 'http://kns.cnki.net/kns/request/SearchHandler.ashx'
         try:
-            response = requests.post(url, params=params, proxies=proxies)
+            response = requests.post(url, params=params, proxies=proxies, timeout=5)
             cookies = requests.utils.dict_from_cookiejar(response.cookies)
 
             cookie_str = ""
@@ -116,6 +116,6 @@ class CookieMiddleware(object):
                 cookie_str += text
             return cookie_str
         except Exception as e:
-            print(e)
+            logger.warning('cookie获取失败')
         return None
 
