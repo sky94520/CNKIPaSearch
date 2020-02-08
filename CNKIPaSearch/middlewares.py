@@ -53,7 +53,7 @@ class RetryOrErrorMiddleware(RetryMiddleware):
     def process_exception(self, request, exception, spider):
         # 出现超时错误时，再次请求
         if isinstance(exception, TimeoutError):
-            return requests
+            return request
 
 
 class ProxyMiddleware(object):
