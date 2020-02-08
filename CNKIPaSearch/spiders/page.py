@@ -59,8 +59,9 @@ class PageSpider(scrapy.Spider):
         yield result['item']
         # TODO:开启新的请求
         self.params.cur_page += 1
-        # 该任务爬取完成
+        # 该任务爬取完成，重新请求cookie
         if self.params.cur_page > max_page:
+            self._cookie_dirty = True
             self.params.request_success()
         # 回写checkpoint
         self.params.save()
