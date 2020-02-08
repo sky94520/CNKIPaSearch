@@ -8,6 +8,7 @@ import os
 import json
 import logging
 import requests
+from twisted.internet.error import TimeoutError
 from scrapy.downloadermiddlewares.retry import RetryMiddleware
 from .hownet_config import *
 
@@ -48,6 +49,11 @@ class RetryOrErrorMiddleware(RetryMiddleware):
             datum = spider.request_error()
             logger.error('%s %s retry times beyond the bounds' % (request.url, datum))
         super()._retry(request, reason, spider)
+
+    def process_exception(self, request, exception, spider):
+        # 出现超时错误时，再次请求
+        if isinstance(exception, TimeoutError):
+            return requests
 
 
 class ProxyMiddleware(object):
