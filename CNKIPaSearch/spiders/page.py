@@ -32,6 +32,7 @@ class PageSpider(scrapy.Spider):
         :return:
         """
         basedir = self.settings.get('BASEDIR')
+        self.logger.info('the file path is %s', basedir)
         self.params = PersistParam(basedir)
         # 获取链接的位置
         request = self._create_request(self.params.cur_page)
