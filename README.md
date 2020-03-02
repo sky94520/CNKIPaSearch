@@ -27,6 +27,7 @@
 ## 问题
 >1. 目前的爬虫仅仅能爬取6000个数据，多的数据可以根据不同的搜索条件进行爬取
 >2. [错误twisted.internet.error.TimeoutError: User timeout caused connection failure](https://blog.csdn.net/xiongzaiabc/article/details/89840730)
+>3. 目前会根据环境中的config变量来获取到不同的配置文件
 ## 所需外部环境
 ## middleware
 > 代理，会发送请求requests获取代理

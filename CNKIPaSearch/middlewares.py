@@ -76,7 +76,7 @@ class CookieMiddleware(object):
 
     def __init__(self):
         # 使用那个类作为配置文件
-        name = os.getenv('config', 'ApplicantConfig')
+        name = os.getenv('CONFIG', 'ApplicantConfig')
         self.config = configurations[name]
 
     def process_request(self, request, spider):

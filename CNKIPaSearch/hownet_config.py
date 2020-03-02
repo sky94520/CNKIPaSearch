@@ -66,4 +66,32 @@ class MainClsNumberConfig(BaseConfig):
         return params
 
 
-configurations = {'ApplicantConfig': ApplicantConfig, 'MainClsNumberConfig': MainClsNumberConfig}
+class KeyWordConfig(BaseConfig):
+    @staticmethod
+    def get_params(keyword):
+        params = {
+            "action": "",
+            "NaviCode": "*",
+            "ua": "1.21",
+            "isinEn": "0",
+            "PageName": "ASP.brief_result_aspx",
+            "DbPrefix": "SCPD",
+            "DbCatalog": "中国专利数据库",
+            "ConfigFile": "SCPD.xml",
+            "db_opt": "SCOD",
+            "db_value": "中国专利数据库",
+            "txt_1_sel": "SU$%=|",
+            "txt_1_value1": keyword,
+            "txt_1_relation": "#CNKI_AND",
+            "txt_1_special1": "=",
+            "his": 0,
+            "__": BaseConfig._get_now_gmt_time()
+        }
+        return params
+
+
+configurations = {
+    'ApplicantConfig': ApplicantConfig,
+    'MainClsNumberConfig': MainClsNumberConfig,
+    'KeyWordConfig': KeyWordConfig,
+}
