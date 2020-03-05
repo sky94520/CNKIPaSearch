@@ -11,6 +11,7 @@ import requests
 from twisted.internet.error import TimeoutError
 from scrapy.downloadermiddlewares.retry import RetryMiddleware
 from .hownet_config import *
+from .config import PROXY_URL
 
 
 logger = logging.getLogger(__name__)
@@ -18,8 +19,7 @@ logger = logging.getLogger(__name__)
 
 def get_random_proxy():
     """获取随机的IP地址"""
-    url = 'http://49.235.2.212:5555/random'
-    response = requests.get(url, timeout=10)
+    response = requests.get(PROXY_URL, timeout=10)
     datum = json.loads(response.text)
     if datum['status'] == 'success':
         return datum['proxy']
