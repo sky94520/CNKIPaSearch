@@ -19,9 +19,10 @@
 >files/pending/ 保存着待爬取文件，需要搭配hownet_config.py下的配置类使用。[格式](#env)
 ## 配置文件
 ### CNKIPaSearch.config
->该配置文件目前仅仅有一个变量，那就是PROXY_URL，用于提供代理，例如：
+>该配置文件目前仅仅有一个变量，那就是PROXY_URL，用于提供代理：
+>config.py
 >```
->PROXY_URL = '127.0.0.1:5555/random''
+>PROXY_URL = '127.0.0.1:5555/random'
 >```
 >则表示127.0.0.1:5555/random会提供代理，该代理应该返回一个json数据：
 >```
@@ -31,7 +32,8 @@
 >}
 >```
 >### .env
->该文件由python-dotenv读取，python-dotenv会把该文件中的内容作为环境变量，（其实配置文件可以被放在pending/ 下的请求队列文件中），比如：
+>该文件由python-dotenv读取，python-dotenv会把该文件中的内容作为环境变量,比如：
+>.env
 >```
 >CONFIG=ApplicantConfig
 >```
