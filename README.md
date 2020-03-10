@@ -5,10 +5,15 @@
 >第二部分则是根据第一个部分得到的专利列表爬取具体的专利。
 >此为第一部分。
 >相关说明<br>
->1. run_page.py 负责启动爬虫；
->2. 本爬虫使用了文件(checkpoint json格式文件)作为断点和队列；
->3. 当某一块爬取完成后，page爬虫检查队列是否有数据，有则设置断点，并开始爬取
+>1. run_page.py 负责启动爬虫(便于调试)；
+>2. 本爬虫使用了文件(checkpoint json格式文件)作为断点和队列，该文件由PersistParam类自动生成，当需要开启一个新的任务的时候，请删除原先的checkpoint文件；
+>3. 当某一块爬取完成后，page爬虫检查队列是否有数据，有则设置断点，并开始爬取;
 >5. 知网的搜索条件是得到cookie，相同的搜索条件对应的cookie是相同的;当出现验证码的时候进行重新请求cookie即可（也可以进行识别）
+>##文件夹说明
+>files/ 保存着待爬取文件，已爬取文件等
+>files/page 保存了根据条件爬取到的html文件
+>files/page_links 保存了根据条件爬取到并解析完成的json格式文件
+>files/pending/ 保存着待爬取文件，[格式](.env)
 ## 配置文件
 ### CNKIPaSearch.config
 >该配置文件目前仅仅有一个变量，那就是PROXY_URL，用于提供代理，例如：
@@ -21,6 +26,46 @@
 >   "proxy": "127.0.0.1:5000",
 >   "status": "success"
 >}
+>```
+>### .env
+>该文件由python-dotenv读取，python-dotenv会把该文件中的内容作为环境变量，（其实配置文件可以被放在pending/ 下的请求队列文件中），比如：
+>```
+>CONFIG=ApplicantConfig
+>```
+>配置类在hownet_config.py文件中，它需要和请求队列的数据保持一致，以ApplicantConfig类为例：
+>```
+>class ApplicantConfig(BaseConfig):
+>    """申请人配置"""
+>    @staticmethod
+>    def get_params(applicant):
+>        params = {
+>            "action": "",
+>            "NaviCode": "*",
+>            "ua": "1.21",
+>            "isinEn": "0",
+>            "PageName": "ASP.brief_result_aspx",
+>            "DbPrefix": "SCPD",
+>            "DbCatalog": "中国专利数据库",
+>            "ConfigFile": "SCPD.xml",
+>            "db_opt": "SCOD",
+>            "db_value": "中国专利数据库",
+>            "txt_1_sel": "SQR",
+>            "txt_1_value1": applicant,
+>            "txt_1_relation": "#CNKI_AND",
+>            "txt_1_special1": "=",
+>            "his": 0,
+>            "__": BaseConfig._get_now_gmt_time()
+>        }
+>        return params
+>```
+>那么在使用ApplicantConfig类的同时，对应pending的文件格式为
+>```
+>[
+>   {
+>       "applicant": "东南大学"
+>   },
+>   ...
+>]
 >```
 ## 思路
 >run_page.py会开启爬虫
