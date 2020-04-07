@@ -11,21 +11,12 @@ import requests
 from twisted.internet.error import TimeoutError
 from scrapy.downloadermiddlewares.retry import RetryMiddleware
 from .hownet_config import *
-from .config import PROXY_URL
+from .Proxy import Proxy
 
 
 logger = logging.getLogger(__name__)
-
-
-def get_random_proxy():
-    """获取随机的IP地址"""
-    response = requests.get(PROXY_URL, timeout=10)
-    datum = json.loads(response.text)
-    if datum['status'] == 'success':
-        return datum['proxy']
-    else:
-        logger.error(datum['msg'])
-        return None
+# 代理
+PROXY = Proxy()
 
 
 def date2str(date):
@@ -53,16 +44,17 @@ class RetryOrErrorMiddleware(RetryMiddleware):
     def process_exception(self, request, exception, spider):
         # 出现超时错误时，再次请求
         if isinstance(exception, TimeoutError):
+            PROXY.dirty = True
             return request
 
 
 class ProxyMiddleware(object):
-
     def process_request(self, request, spider):
         # 最大重试次数
         retry_times = request.meta.get('retry_times', 0)
         max_retry_times = spider.crawler.settings.get('MAX_RETRY_TIMES')
-        proxy = get_random_proxy()
+        # 如果存在尝试，则换一个代理
+        proxy = PROXY.get_proxy()
         # 最后一次尝试不使用代理
         if proxy and retry_times != max_retry_times:
             logger.info('使用代理%s' % proxy)
@@ -84,12 +76,15 @@ class CookieMiddleware(object):
         if spider.cookie_dirty:
             # 死循环获取cookie
             cookie = None
+            global PROXY
             while not cookie:
-                proxy = get_random_proxy()
+                proxy = PROXY.get_proxy()
                 proxies = {'http': proxy}
                 # 根据条件获取cookie
                 cookie = self.get_cookie(spider.request_datum, proxies)
                 logger.warning('获取cookie %s' % cookie)
+                if cookie is None:
+                    PROXY.dirty = True
             spider.cookie = cookie
         # 赋值cookie
         request.headers['Cookie'] = spider.cookie
