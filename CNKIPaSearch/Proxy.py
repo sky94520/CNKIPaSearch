@@ -1,3 +1,4 @@
+import logging
 import requests
 from .config import PROXY_URL
 
@@ -14,5 +15,10 @@ class Proxy(object):
         return self._proxy
 
     def _get_random_proxy(self):
-        response = requests.get(PROXY_URL, timeout=2)
-        return response.text
+        try:
+            response = requests.get(PROXY_URL, timeout=2)
+            if response.status_code != 200:
+                self._get_random_proxy()
+            return response.text
+        except Exception as e:
+            logging.warning(e)
