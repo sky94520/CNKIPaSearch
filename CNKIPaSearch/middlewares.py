@@ -83,7 +83,7 @@ class CookieMiddleware(object):
                 # 根据条件获取cookie
                 cookie = self.get_cookie(spider.request_datum, proxies)
                 logger.warning('获取cookie %s' % cookie)
-                if cookie is None:
+                if cookie is None or len(cookie) == 0:
                     PROXY.dirty = True
             spider.cookie = cookie
         # 赋值cookie
