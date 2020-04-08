@@ -60,7 +60,7 @@ class ProxyMiddleware(object):
             logger.info('使用代理%s' % proxy)
             request.meta['proxy'] = 'http://%s' % proxy
         else:
-            reason = '代理获取失败' if proxy else ('达到最大重试次数[%d/%d]' % (retry_times, max_retry_times))
+            reason = '代理获取失败' if proxy is None else ('达到最大重试次数[%d/%d]' % (retry_times, max_retry_times))
             logger.warning('%s，使用自己的IP' % reason)
 
 
