@@ -50,7 +50,7 @@ class GetFromLocalityMiddleware(object):
 
 
 class RetryOrErrorMiddleware(RetryMiddleware):
-    """在之前的基础上增加了一条判断语句，当重试次数超过阈值时，发出错误"""
+    """在官方的基础上增加了一条判断语句，当重试次数超过阈值时，发出错误"""
 
     def _retry(self, request, reason, spider):
         # 获取当前的重试次数

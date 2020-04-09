@@ -29,6 +29,10 @@ def get_path(spider, path_name):
 class SaveSearchJsonPipeline(object):
 
     def process_item(self, item, spider):
+        # 不存在专利，则直接退出
+        if len(item['array']) == 0:
+            response = item['response']
+            raise DropItem('%s has not any patent' % response.url)
         path = get_path(spider, 'page_links')
         index = spider.cur_page
 
@@ -53,7 +57,7 @@ class SaveSearchHtmlPipeline(object):
         filename = os.path.join(path, '%s.html' % index)
         with open(filename, "wb") as fp:
             fp.write(response.body)
-        return
+        return item
 
 
 class FilterPipeline(object):

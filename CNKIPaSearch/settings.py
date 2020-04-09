@@ -27,17 +27,17 @@ MAX_RETRY_TIMES = 20
 # 每个页面的专利个数
 PATENT_NUMBER_PER_PAGE = 50
 
-DOWNLOADER_MIDDLEWARES = {
-    'CNKIPaSearch.middlewares.RetryOrErrorMiddleware': 550,
-    'CNKIPaSearch.middlewares.ProxyMiddleware': 843,
-    'CNKIPaSearch.middlewares.CookieMiddleware': 844,
-}
-# Configure item pipelines
-# See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-ITEM_PIPELINES = {
-    'CNKIPaSearch.pipelines.JsonPipeline': 300,
-    'CNKIPaSearch.pipelines.SavePagePipeline': 301,
-}
+# DOWNLOADER_MIDDLEWARES = {
+#     'CNKIPaSearch.middlewares.RetryOrErrorMiddleware': 550,
+#     'CNKIPaSearch.middlewares.ProxyMiddleware': 843,
+#     'CNKIPaSearch.middlewares.CookieMiddleware': 844,
+# }
+# # Configure item pipelines
+# # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
+# ITEM_PIPELINES = {
+#     'CNKIPaSearch.pipelines.JsonPipeline': 300,
+#     'CNKIPaSearch.pipelines.SavePagePipeline': 301,
+# }
 
 # 禁止重定向
 REDIRECT_ENALBED = False
