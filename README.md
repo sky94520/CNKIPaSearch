@@ -93,9 +93,9 @@
 >2. [错误twisted.internet.error.TimeoutError: User timeout caused connection failure](https://blog.csdn.net/xiongzaiabc/article/details/89840730)
 >3. 目前会根据环境中的config变量来获取到不同的配置文件
 ## middleware
-> 代理，会发送请求requests获取代理
-> 设置cookie，会检测spider之前的cookie是否已经不可用，如果不可用，则重新发起请求获取
-> 重写最大值重试次数中间件 功能只是添加了一个日志输出
+> RetryOrErrorMiddleware 重写最大值重试次数中间件 功能只是添加了一个日志输出 <br>
+> ProxyMiddleware 使用requests库请求获取代理<br>
+> CookieMiddleware 设置cookie，会检测spider的cookie是否已经不可用，如果不可用，则重新发起请求获取 <br>
 ## pipeline
 > JsonPipeline 用于把解析出来的数据保存到json文件中<br>
 > SavePagePipeline 保存原始的页面

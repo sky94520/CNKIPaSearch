@@ -3,7 +3,7 @@ import os
 import re
 import scrapy
 from urllib.parse import urlencode, urlparse, parse_qsl
-from CNKIPaSearch.items import PatentItem
+from CNKIPaSearch.items import SearchItem
 from CNKIPaSearch.PersistParam import PersistParam
 
 
@@ -114,7 +114,7 @@ class PageSpider(scrapy.Spider):
         # 这个分类的当前页面条目个数确实为0 爬取完成
         if length == 0:
             return None
-        item = PatentItem()
+        item = SearchItem()
         item['response'] = response
         item['array'] = []
         # 解析条目 去掉头
@@ -127,7 +127,7 @@ class PageSpider(scrapy.Spider):
             datum = {}
             # 键值对 映射
             for t in query_tuple:
-                if t[0] in PatentItem.KEYS:
+                if t[0] in SearchItem.KEYS:
                     datum[t[0]] = t[1]
             # TODO: 外部扩展
             titles = tr.xpath('./td[2]/a//text()').extract()
