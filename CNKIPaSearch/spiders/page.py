@@ -178,6 +178,7 @@ class PageSpider(scrapy.Spider):
 
     @property
     def request_datum(self):
+        """获取队列首部的元素"""
         return self.params.request_queue[0]
 
     @property
