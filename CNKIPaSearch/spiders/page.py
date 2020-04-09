@@ -3,12 +3,13 @@ import os
 import re
 import scrapy
 from urllib.parse import urlencode, urlparse, parse_qsl
-from CNKIPaSearch.items import SearchItem
-from CNKIPaSearch.PersistParam import PersistParam
+from ..items import SearchItem
+from ..PersistParam import PersistParam
 
 
 class IdentifyingCodeError(Exception):
     """出现验证码所引发的异常"""
+
     def __init__(self, text):
         self.text = text
 
@@ -18,6 +19,17 @@ class IdentifyingCodeError(Exception):
 
 class PageSpider(scrapy.Spider):
     name = 'page'
+    custom_settings = {
+        'DOWNLOADER_MIDDLEWARES': {
+            'CNKIPaSearch.middlewares.RetryOrErrorMiddleware': 550,
+            'CNKIPaSearch.middlewares.ProxyMiddleware': 843,
+            'CNKIPaSearch.middlewares.CookieMiddleware': 844,
+        },
+        'ITEM_PIPELINES': {
+            'CNKIPaSearch.pipelines.SaveSearchJsonPipeline': 300,
+            'CNKIPaSearch.pipelines.SaveSearchHtmlPipeline': 301,
+        }
+    }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

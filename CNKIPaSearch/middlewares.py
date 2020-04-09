@@ -8,6 +8,7 @@ import os
 import json
 import logging
 import requests
+from scrapy.http import HtmlResponse
 from twisted.internet.error import TimeoutError
 from scrapy.downloadermiddlewares.retry import RetryMiddleware
 from .hownet_config import *
@@ -22,6 +23,30 @@ PROXY = Proxy()
 def date2str(date):
     date_string = date.strftime('%Y-%m-%d')
     return date_string
+
+
+class GetFromLocalityMiddleware(object):
+    def process_request(self, request, spider):
+        """
+        尝试从本地获取源文件，如果存在，则直接获取
+        :param request:
+        :param spider:
+        :return:
+        """
+        # 提取出code
+        filename = request.meta['publication_number']
+        # 文件存放位置
+        path = request.meta['path']
+        # 该路径存在该文件
+        filepath = os.path.join(path, '%s.html' % filename)
+        if os.path.exists(filepath):
+            fp = open(filepath, 'rb')
+            body = fp.read()
+            fp.close()
+            # 从本地加载的文件不再重新写入
+            request.meta['load_from_local'] = True
+            return HtmlResponse(url=request.url, headers=request.headers, body=body, request=request)
+        return None
 
 
 class RetryOrErrorMiddleware(RetryMiddleware):
