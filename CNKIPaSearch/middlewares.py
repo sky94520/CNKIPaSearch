@@ -63,13 +63,15 @@ class RetryOrErrorMiddleware(RetryMiddleware):
 
         # 超出重试次数
         if retry_times > max_retry_times:
-            datum = spider.request_error()
-            logger.error('%s %s retry times beyond the bounds' % (request.url, datum))
+            # datum = spider.request_error()
+            # logger.error('%s %s retry times beyond the bounds' % (request.url, datum))
+            logger.error('%s retry times beyond the bounds' % request.url)
         super()._retry(request, reason, spider)
 
     def process_exception(self, request, exception, spider):
         # 出现超时错误时，再次请求
         if isinstance(exception, TimeoutError):
+            logger.warning(exception)
             PROXY.dirty = True
             return request
 
@@ -80,10 +82,11 @@ class ProxyMiddleware(object):
         retry_times = request.meta.get('retry_times', 0)
         max_retry_times = spider.crawler.settings.get('MAX_RETRY_TIMES')
         # 如果存在尝试，则换一个代理
-        proxy = None
-        while proxy is None:
-            proxy = PROXY.get_proxy()
-            time.sleep(1)
+        proxy = PROXY.get_proxy()
+        # 代理更新失败，则重新请求
+        if proxy is None:
+            # PROXY.dirty = True
+            return request
         # 最后一次尝试不使用代理
         if proxy and retry_times != max_retry_times:
             logger.info('使用代理%s' % proxy)
