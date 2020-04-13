@@ -18,7 +18,11 @@ class Proxy(object):
         try:
             response = requests.get(PROXY_URL, timeout=2)
             if response.status_code != 200:
-                self._get_random_proxy()
-            return response.text
+                return None
+            json_data = response.json()
+            if 'success' not in json_data or json_data['success'] != 'true':
+                return None
+            data = json_data['data'][0]
+            return data['IP']
         except Exception as e:
             logging.warning(e)

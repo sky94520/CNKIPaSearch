@@ -5,6 +5,7 @@
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 import os
+import time
 import json
 import logging
 import requests
@@ -79,7 +80,10 @@ class ProxyMiddleware(object):
         retry_times = request.meta.get('retry_times', 0)
         max_retry_times = spider.crawler.settings.get('MAX_RETRY_TIMES')
         # 如果存在尝试，则换一个代理
-        proxy = PROXY.get_proxy()
+        proxy = None
+        while proxy is None:
+            proxy = PROXY.get_proxy()
+            time.sleep(1)
         # 最后一次尝试不使用代理
         if proxy and retry_times != max_retry_times:
             logger.info('使用代理%s' % proxy)
@@ -110,6 +114,7 @@ class CookieMiddleware(object):
                 logger.warning('获取cookie %s' % cookie)
                 if cookie is None or len(cookie) == 0:
                     PROXY.dirty = True
+                time.sleep(1)
             spider.cookie = cookie
         # 赋值cookie
         request.headers['Cookie'] = spider.cookie
