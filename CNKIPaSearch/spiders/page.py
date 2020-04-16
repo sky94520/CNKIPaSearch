@@ -2,18 +2,9 @@
 import re
 import scrapy
 from urllib.parse import urlencode, urlparse, parse_qsl
+from . import IdentifyingCodeError
 from ..items import SearchItem
 from ..PersistParam import PersistParam
-
-
-class IdentifyingCodeError(Exception):
-    """出现验证码所引发的异常"""
-
-    def __init__(self, text):
-        self.text = text
-
-    def __str__(self):
-        return self.text
 
 
 class PageSpider(scrapy.Spider):
@@ -60,15 +51,15 @@ class PageSpider(scrapy.Spider):
         self.logger.info('正在爬取')
         # 解析页面，如果出现验证码则重新请求
         try:
-            result = self._parse_html(response)
+            item, total_count = self._parse_html(response)
         except IdentifyingCodeError as e:
             self.logger.error(e)
             self._cookie_dirty = True
             yield self._create_request(self.params.cur_page)
             return
-        max_page = result['max_page']
+        max_page = min(120, total_count // self.settings.get('PATENT_NUMBER_PER_PAGE', 50))
         # 返回items
-        yield result['item']
+        yield item
         # TODO:开启新的请求
         self.params.cur_page += 1
         # 该任务爬取完成，重新请求cookie
@@ -150,10 +141,7 @@ class PageSpider(scrapy.Spider):
 
             item['array'].append(datum)
 
-        return {
-            'item': item,
-            'max_page': min(120, total_count // self.settings.get('PATENT_NUMBER_PER_PAGE', 50)),
-        }
+        return item, total_count
 
     def _get_total_count(self, num_str):
         # 正则提取，并转换成整型

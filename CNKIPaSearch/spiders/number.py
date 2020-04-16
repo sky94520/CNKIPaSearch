@@ -5,17 +5,9 @@
 import re
 import scrapy
 from urllib.parse import urlencode
+from . import IdentifyingCodeError
 from ..items import NumberItem
 from ..PersistParam import PersistParam
-
-
-class IdentifyingCodeError(Exception):
-    """出现验证码所引发的异常"""
-    def __init__(self, text):
-        self.text = text
-
-    def __str__(self):
-        return self.text
 
 
 class NumberSpider(scrapy.Spider):
