@@ -15,6 +15,11 @@ class SearchItem(scrapy.Item):
     response = scrapy.Field()
 
 
+class NumberItem(scrapy.Item):
+    name = scrapy.Field()
+    number = scrapy.Field()
+
+
 class PatentItem(scrapy.Item):
     # TODO:数据库集合名称 发明授权专利
     collection = 'invention_patent'

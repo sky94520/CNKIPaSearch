@@ -6,9 +6,11 @@
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 import re
 import os
+import csv
 import json
 import pymongo
 import logging
+import operator
 import datetime
 from scrapy.exceptions import DropItem
 from .items import PatentItem
@@ -134,6 +136,38 @@ class SaveDetailJsonPipeline(object):
         with open(filename, "w", encoding='utf-8') as fp:
             fp.write(json.dumps(dict(item), ensure_ascii=False, indent=2))
         return item
+
+
+class SaveNumberCsvPipeline(object):
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(
+            basedir=crawler.settings.get('BASEDIR'),
+        )
+
+    def __init__(self, basedir):
+        # 保存所有名单
+        self.json_data = []
+        self.save_path = os.path.join(basedir, 'files')
+        if not os.path.exists(self.save_path):
+            os.makedirs(self.save_path)
+
+    def process_item(self, item, spider):
+        self.json_data.append({
+            'name': item['name']['applicant'],
+            'number': item['number'],
+        })
+        return item
+
+    def close_spider(self, spider):
+        # 排序
+        sorted(self.json_data, key=lambda x: x['number'], reverse=True)
+        filename = os.path.join(self.save_path, 'list_quantity.csv')
+        fieldnames = ['name', 'number']
+        fp = open(filename, 'w', encoding='gb2312', newline='')
+        writer = csv.DictWriter(fp, fieldnames=fieldnames)
+        writer.writerows(self.json_data)
+        fp.close()
 
 
 class MongoPipeline(object):
