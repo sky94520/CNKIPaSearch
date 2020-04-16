@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import os
 import re
 import scrapy
 from urllib.parse import urlencode, urlparse, parse_qsl

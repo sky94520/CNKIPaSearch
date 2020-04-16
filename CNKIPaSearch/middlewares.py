@@ -61,12 +61,12 @@ class RetryOrErrorMiddleware(RetryMiddleware):
         if 'max_retry_times' in request.meta:
             max_retry_times = request.meta['max_retry_times']
 
-        # 超出重试次数
-        if retry_times > max_retry_times:
-            # datum = spider.request_error()
+        # 超出重试次数，记录
+        if retry_times >= max_retry_times:
+            spider.request_error()
             # logger.error('%s %s retry times beyond the bounds' % (request.url, datum))
             logger.error('%s retry times beyond the bounds' % request.url)
-        super()._retry(request, reason, spider)
+        # super()._retry(request, reason, spider)
 
     def process_exception(self, request, exception, spider):
         # 出现超时错误时，再次请求
