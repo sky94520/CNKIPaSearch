@@ -1,13 +1,9 @@
 # --coding:UTF-8--
-import os
-# from dotenv import load_dotenv
 from scrapy.utils.project import get_project_settings
 from scrapy.crawler import CrawlerProcess
 
 
 def run():
-    # 加载.env配置文件
-    # load_dotenv()
     # 爬取使用的spider名称
     spider_name = 'detail'
     project_settings = get_project_settings()

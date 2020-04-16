@@ -1,5 +1,4 @@
 # --coding:UTF-8--
-from dotenv import load_dotenv
 from scrapy.utils.project import get_project_settings
 from scrapy.crawler import CrawlerProcess
 
@@ -16,5 +15,4 @@ def start_spider():
 
 
 if __name__ == '__main__':
-    load_dotenv()
     start_spider()

@@ -14,6 +14,11 @@ class BaseConfig(object):
 
         return text
 
+    @staticmethod
+    def is_matching(datum):
+        """根据数据中带有的类型，判断是否使用本类"""
+        return False
+
 
 class ApplicantConfig(BaseConfig):
     """申请人配置"""
@@ -38,6 +43,10 @@ class ApplicantConfig(BaseConfig):
             "__": BaseConfig._get_now_gmt_time()
         }
         return params
+
+    @staticmethod
+    def is_matching(datum):
+        return 'applicant' in datum and len(datum) == 1
 
 
 class ApplicantAndDateConfig(BaseConfig):
@@ -65,6 +74,11 @@ class ApplicantAndDateConfig(BaseConfig):
             "__": BaseConfig._get_now_gmt_time()
         }
         return params
+
+    @staticmethod
+    def is_matching(datum):
+        keys = ['applicant', 'from_date', 'to_date']
+        return all([key in datum for key in keys])
 
 
 class ApplicantsAndDateConfig(BaseConfig):
@@ -104,6 +118,11 @@ class ApplicantsAndDateConfig(BaseConfig):
                 params["txt_%d_logical" % (idx + 1)] = "or"
         return params
 
+    @staticmethod
+    def is_matching(datum):
+        keys = ['applicants', 'from_date', 'to_date']
+        return all([key in datum for key in keys])
+
 
 class MainClsNumberConfig(BaseConfig):
     """主分类号配置 txt_1_value1设置 仅仅发明公开"""
@@ -130,6 +149,10 @@ class MainClsNumberConfig(BaseConfig):
         }
         return params
 
+    @staticmethod
+    def is_matching(datum):
+        return 'main_cls_number' in datum
+
 
 class KeyWordConfig(BaseConfig):
     @staticmethod
@@ -154,11 +177,15 @@ class KeyWordConfig(BaseConfig):
         }
         return params
 
+    @staticmethod
+    def is_matching(datum):
+        return 'keyword' in datum
 
-configurations = {
-    'ApplicantConfig': ApplicantConfig,
-    'ApplicantAndDateConfig': ApplicantAndDateConfig,
-    'ApplicantsAndDateConfig': ApplicantsAndDateConfig,
-    'MainClsNumberConfig': MainClsNumberConfig,
-    'KeyWordConfig': KeyWordConfig,
-}
+
+def get_config_class(datum):
+    """工厂函数，用于通过数据的格式来选择配置"""
+    configurations = [ApplicantAndDateConfig, ApplicantConfig, KeyWordConfig, MainClsNumberConfig]
+    for config_class in configurations:
+        if config_class.is_matching(datum):
+            return config_class
+

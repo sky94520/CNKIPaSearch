@@ -100,8 +100,7 @@ class CookieMiddleware(object):
 
     def __init__(self):
         # 使用那个类作为配置文件
-        name = os.getenv('CONFIG', 'ApplicantConfig')
-        self.config = configurations[name]
+        self.config = BaseConfig
 
     def process_request(self, request, spider):
         # 重新请求cookie
@@ -130,6 +129,9 @@ class CookieMiddleware(object):
         :return: cookie 字符串类型，主要用于赋值到header中的Cookie键
         headers = {'Cookie': cookie}
         """
+        # 动态获取配置类
+        if not self.config.is_matching(values):
+            self.config = get_config_class(values)
         params = self.config.get_params(**values)
         params.update(**kwargs)
         url = 'http://kns.cnki.net/kns/request/SearchHandler.ashx'
