@@ -27,13 +27,18 @@
 >PROXY_URL = '127.0.0.1:5555/random'
 >```
 >代理目前主要是由Proxy类进行提供，同一时刻仅仅使用一个代理，当这个代理不可用的时候，才会重新进行请求
->### .env
->该文件由python-dotenv读取，python-dotenv会把该文件中的内容作为环境变量,比如：
->.env
+>### hownet_config.py(目前该文件已废弃)
+>该文件用来保存知网的各个搜索条件的配置，目前根据输入的字典的键来自动匹配配置类
+>比如pending文件夹的内容格式为：
 >```
->CONFIG=ApplicantConfig
+>[
+>   {
+>       "applicant": "东南大学"
+>   },
+>   ...
+>]
 >```
->配置类在hownet_config.py文件中，它需要和请求队列的数据保持一致，以ApplicantConfig类为例：
+>那么使用的则是ApplicantConfig
 >```
 >class ApplicantConfig(BaseConfig):
 >    """申请人配置"""
@@ -58,15 +63,6 @@
 >            "__": BaseConfig._get_now_gmt_time()
 >        }
 >        return params
->```
->那么在使用ApplicantConfig类的同时，对应pending的文件格式为
->```
->[
->   {
->       "applicant": "东南大学"
->   },
->   ...
->]
 >```
 ## 1.page爬虫
 >### 1.1 思路
