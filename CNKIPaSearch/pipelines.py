@@ -147,27 +147,39 @@ class SaveNumberCsvPipeline(object):
 
     def __init__(self, basedir):
         # 保存所有名单
+        self.fieldnames = ['name', 'number']
         self.json_data = []
-        self.save_path = os.path.join(basedir, 'files')
-        if not os.path.exists(self.save_path):
-            os.makedirs(self.save_path)
+        save_path = os.path.join(basedir, 'files')
+        self.filename = os.path.join(save_path, 'list_quantity.csv')
+        # 读取断点数据
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+        elif os.path.exists(self.filename):
+            fp = open(self.filename, 'r')
+            reader = csv.DictReader(fp, fieldnames=self.fieldnames)
+            for idx, datum in enumerate(reader):
+                if idx == 0:
+                    continue
+                datum['number'] = int(datum['number'])
+                self.json_data.append(datum)
+            fp.close()
 
     def process_item(self, item, spider):
         self.json_data.append({
             'name': item['name']['applicant'],
             'number': item['number'],
         })
+        # TODO: 每次都写入
+        sorted(self.json_data, key=lambda x: x['number'], reverse=True)
+        fp = open(self.filename, 'w', encoding='gb2312', newline='')
+        writer = csv.DictWriter(fp, fieldnames=self.fieldnames)
+        writer.writeheader()
+        writer.writerows(self.json_data)
+        fp.close()
         return item
 
     def close_spider(self, spider):
-        # 排序
-        sorted(self.json_data, key=lambda x: x['number'], reverse=True)
-        filename = os.path.join(self.save_path, 'list_quantity.csv')
-        fieldnames = ['name', 'number']
-        fp = open(filename, 'w', encoding='gb2312', newline='')
-        writer = csv.DictWriter(fp, fieldnames=fieldnames)
-        writer.writerows(self.json_data)
-        fp.close()
+        pass
 
 
 class MongoPipeline(object):
