@@ -181,7 +181,7 @@ class PageSpider(scrapy.Spider):
         for idx, span in enumerate(span_list):
             # 奇数为年份，偶数为数字
             if idx % 2 == 0:
-                year = span.xpath('./a/text()').extract_first(0)
+                year = int(span.xpath('./a/text()').extract_first(0))
                 years.append(year)
             else:
                 number_str = span.xpath('./text()').extract_first("(0)")
@@ -189,6 +189,11 @@ class PageSpider(scrapy.Spider):
                 numbers.append(number)
         # 交给PersistParam
         print(years, numbers)
+        self.params.set_groups(years, numbers, self.settings.get('MAX_PATENT_NUM'))
+        # 写入，并重新发起请求
+        self.params.save()
+        self._cookie_dirty = True
+        yield self._create_request(self.params.cur_page)
 
     @property
     def cookie_dirty(self):

@@ -6,11 +6,9 @@
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 import os
 import time
-import json
 import logging
 import requests
 from scrapy.http import HtmlResponse
-from twisted.internet.error import TimeoutError
 from scrapy.downloadermiddlewares.retry import RetryMiddleware
 from .hownet_config import *
 from .Proxy import Proxy
@@ -19,11 +17,6 @@ from .Proxy import Proxy
 logger = logging.getLogger(__name__)
 # 代理
 PROXY = Proxy()
-
-
-def date2str(date):
-    date_string = date.strftime('%Y-%m-%d')
-    return date_string
 
 
 class GetFromLocalityMiddleware(object):
