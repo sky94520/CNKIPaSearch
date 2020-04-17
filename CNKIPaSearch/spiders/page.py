@@ -5,6 +5,7 @@ from urllib.parse import urlencode, urlparse, parse_qsl
 from . import IdentifyingCodeError
 from ..items import SearchItem
 from ..PersistParam import PersistParam
+from ..hownet_config import BaseConfig
 
 
 class PageSpider(scrapy.Spider):
@@ -56,6 +57,10 @@ class PageSpider(scrapy.Spider):
             self.logger.error(e)
             self._cookie_dirty = True
             yield self._create_request(self.params.cur_page)
+            return
+        # 发出请求，获取年份 专利数量
+        if total_count > self.settings.get('MAX_PATENT_NUM'):
+            yield self._create_group_request()
             return
         max_page = min(120, total_count // self.settings.get('PATENT_NUMBER_PER_PAGE', 50))
         # 返回items
@@ -149,6 +154,41 @@ class PageSpider(scrapy.Spider):
         pager = re.sub(',', '', pager.group(0))
         total_count = int(pager)
         return total_count
+
+    def _create_group_request(self):
+        """
+        创建一个请求 用于获取年份 专利数据
+        :return: request 返回请求
+        """
+        # TODO: 暂时不知道Param代表的意思
+        params = {
+            'action': 1,
+            'Param': "ASP.brief_result_aspx#SCPD/%u5E74/%u5E74,count(*)/%u5E74/(%u5E74,'date')#%u5E74$desc/1000000$/-/40/40000/ButtonView",
+            'cid': 1,
+            'clayer': 0,
+            '__': BaseConfig._get_now_gmt_time()
+        }
+        base_url = 'http://kns.cnki.net/kns/group/doGroupLeft.aspx'
+        url = '%s?%s' % (base_url, urlencode(params))
+        meta = {
+            'max_retry_times': self.crawler.settings.get('MAX_RETRY_TIMES')
+        }
+        return scrapy.Request(url=url, callback=self._parse_group, meta=meta, dont_filter=True)
+
+    def _parse_group(self, response):
+        span_list = response.xpath('.//span')
+        years, numbers = [], []
+        for idx, span in enumerate(span_list):
+            # 奇数为年份，偶数为数字
+            if idx % 2 == 0:
+                year = span.xpath('./a/text()').extract_first(0)
+                years.append(year)
+            else:
+                number_str = span.xpath('./text()').extract_first("(0)")
+                number = int(number_str[1:-1])
+                numbers.append(number)
+        # 交给PersistParam
+        print(years, numbers)
 
     @property
     def cookie_dirty(self):

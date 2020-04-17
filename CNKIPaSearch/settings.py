@@ -26,6 +26,14 @@ BASEDIR = os.path.realpath(os.path.dirname(os.path.dirname(__file__)))
 MAX_RETRY_TIMES = 20
 # 每个页面的专利个数
 PATENT_NUMBER_PER_PAGE = 50
+# 知网能爬取的最大个数
+MAX_PATENT_NUM = 6000
+# 禁止重定向
+REDIRECT_ENALBED = False
+# 允许出现404 403
+HTTPERROR_ALLOWED_CODES = [404, 403, 401, 503]
+# 下载限制15秒为延时 默认180s
+DOWNLOAD_TIMEOUT = 15
 
 # DOWNLOADER_MIDDLEWARES = {
 #     'CNKIPaSearch.middlewares.RetryOrErrorMiddleware': 550,
@@ -38,11 +46,4 @@ PATENT_NUMBER_PER_PAGE = 50
 #     'CNKIPaSearch.pipelines.JsonPipeline': 300,
 #     'CNKIPaSearch.pipelines.SavePagePipeline': 301,
 # }
-
-# 禁止重定向
-REDIRECT_ENALBED = False
-# 允许出现404 403
-HTTPERROR_ALLOWED_CODES = [404, 403, 401, 503]
-# 下载限制15秒为延时 默认180s
-DOWNLOAD_TIMEOUT = 15
 

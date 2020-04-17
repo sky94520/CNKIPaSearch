@@ -69,8 +69,7 @@ class RetryOrErrorMiddleware(RetryMiddleware):
         # super()._retry(request, reason, spider)
 
     def process_exception(self, request, exception, spider):
-        # 出现超时错误时，再次请求
-        # if isinstance(exception, TimeoutError):
+        # 出现错误，再次请求
         logger.warning(exception)
         PROXY.dirty = True
         return request
@@ -114,6 +113,7 @@ class CookieMiddleware(object):
                 # 根据条件获取cookie
                 cookie = self.get_cookie(spider.request_datum, proxies)
                 logger.warning('获取cookie %s' % cookie)
+                # cookie获取失败，更换代理重新获取
                 if cookie is None or len(cookie) == 0:
                     PROXY.dirty = True
                 time.sleep(1)
