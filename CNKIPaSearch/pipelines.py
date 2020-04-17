@@ -21,9 +21,13 @@ logger = logging.getLogger(__name__)
 
 def get_path(spider, path_name):
     basedir = spider.settings.get('BASEDIR')
-    value = list(spider.request_datum.values())[0]
-    variable = re.sub('/', '-', value)
-    path = os.path.join(basedir, 'files', path_name, variable)
+    # 以第一个作为文件名， 其他作为另外的文件名
+    values = list(spider.request_datum.values())
+    # 必定存在一个键值对
+    dirname = re.sub('/', '-', values[0])
+    if len(values) > 1:
+        dirname = os.path.join(dirname, ','.join(values[1:]))
+    path = os.path.join(basedir, 'files', path_name, dirname)
 
     return path
 
