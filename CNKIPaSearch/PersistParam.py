@@ -61,41 +61,44 @@ class PersistParam(object):
         :param maximum: 最大值
         :return:
         """
-        # 加入假的数据
-        years.append(years[-1])
-        numbers.append(maximum)
         top = self.request_queue.pop(0)
         count, from_year = 0, None
         now = datetime.now()
-        for year, number in zip(years, numbers):
+        idx = 0
+        while idx < len(years) and idx < len(numbers):
+            year = years[idx]
+            count += numbers[idx]
+            if idx + 1 < len(years) and idx + 1 < len(numbers):
+                number = numbers[idx+1]
+            else:
+                number = maximum
             if from_year is None:
                 from_year = year
-            if count + number > maximum:
-                # TODO:当前记录超过阈值
-                if count == 0:
-                    if 'from_date' in top:
-                        from_date, to_date = str2date(top['from_date']), str2date(top['to_date'])
-                    else:
-                        from_date, to_date = datetime(year, 1, 1), (now if year == now.year else datetime(year, 12, 31))
-                    delta = (to_date - from_date) / 2
-                    idx, dates = 0, [from_date, from_date + delta, from_date + delta + timedelta(1), to_date]
-                    while idx < len(dates):
-                        datum = top.copy()
-                        datum['from_date'] = date2str(date=dates[idx])
-                        datum['to_date'] = date2str(date=dates[idx+1])
-                        idx += 2
-                        self.request_queue.insert(0, datum)
+
+            if count > maximum:
+                if 'from_date' in top:
+                    from_date, to_date = str2date(top['from_date']), str2date(top['to_date'])
                 else:
+                    from_date, to_date = datetime(year, 1, 1), (now if year == now.year else datetime(year, 12, 31))
+                delta = (to_date - from_date) / 2
+                j, dates = 0, [from_date, from_date + delta, from_date + delta + timedelta(1), to_date]
+                while j < len(dates):
                     datum = top.copy()
-                    datum['from_date'] = date2str(year=from_year)
-                    if year == now.year:
-                        datum['to_date'] = date2str(date=now)
-                    else:
-                        datum['to_date'] = date2str(date=datetime(year, 12, 31))
+                    datum['from_date'] = date2str(date=dates[j])
+                    datum['to_date'] = date2str(date=dates[j+1])
+                    j += 2
                     self.request_queue.insert(0, datum)
                 count, from_year = 0, None
-            else:
-                count += number
+            elif count + number > maximum:
+                datum = top.copy()
+                datum['from_date'] = date2str(year=from_year)
+                if year == now.year:
+                    datum['to_date'] = date2str(date=now)
+                else:
+                    datum['to_date'] = date2str(date=datetime(year, 12, 31))
+                self.request_queue.insert(0, datum)
+                count, from_year = 0, None
+            idx += 1
 
     def request_error(self):
         """
