@@ -18,6 +18,8 @@ NEWSPIDER_MODULE = 'CNKIPaSearch.spiders'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'CNKIPaSearch (+http://www.yourdomain.com)'
+# 限制并发请求数量
+CONCURRENT_REQUESTS = 4
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
