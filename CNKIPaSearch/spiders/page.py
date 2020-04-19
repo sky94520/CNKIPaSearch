@@ -73,7 +73,8 @@ class PageSpider(scrapy.Spider):
             self.params.request_success()
         # 回写checkpoint
         self.params.save()
-        if len(self.params.request_queue) == 0:
+        # if len(self.params.request_queue) == 0:
+        if self.request_queue_empty:
             return None
         yield self._create_request(self.params.cur_page)
 
@@ -157,7 +158,7 @@ class PageSpider(scrapy.Spider):
 
     def _create_group_request(self):
         """
-        创建一个请求 用于获取年份 专利数据
+        创建一个请求 用于获取年份 专利数据 年份对应的专利数据 按公开日统计得到
         :return: request 返回请求
         """
         # TODO: 暂时不知道Param代表的意思
@@ -211,7 +212,14 @@ class PageSpider(scrapy.Spider):
     @property
     def request_datum(self):
         """获取队列首部的元素"""
+        if len(self.params.request_queue) == 0:
+            self.params.pop_from_error_queue()
         return self.params.request_queue[0]
+
+    @property
+    def request_queue_empty(self):
+        """只有请求队列和错误队列中同时为空，才代表空"""
+        return len(self.params.request_queue) == 0 and len(self.params.error) == 0
 
     @property
     def cur_page(self):

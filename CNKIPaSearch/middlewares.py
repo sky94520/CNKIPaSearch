@@ -54,6 +54,7 @@ class RetryOrErrorMiddleware(RetryMiddleware):
         if 'max_retry_times' in request.meta:
             max_retry_times = request.meta['max_retry_times']
 
+        PROXY.dirty = True
         # 超出重试次数，记录
         if retry_times >= max_retry_times:
             spider.request_error()
@@ -73,11 +74,9 @@ class ProxyMiddleware(object):
         # 最大重试次数
         retry_times = request.meta.get('retry_times', 0)
         max_retry_times = spider.crawler.settings.get('MAX_RETRY_TIMES')
-        # 如果存在尝试，则换一个代理
-        proxy = PROXY.get_proxy()
         # 代理更新失败，则重新请求
+        proxy = PROXY.get_proxy()
         if proxy is None:
-            # PROXY.dirty = True
             return request
         # 最后一次尝试不使用代理
         if proxy and retry_times != max_retry_times:
@@ -89,16 +88,15 @@ class ProxyMiddleware(object):
 
 
 class CookieMiddleware(object):
-
     def __init__(self):
         # 使用那个类作为配置文件
         self.config = BaseConfig
 
     def process_request(self, request, spider):
         # 重新请求cookie
-        if spider.cookie_dirty:
+        cookie = None
+        if spider.cookie_dirty and not spider.request_queue_empty:
             # 死循环获取cookie
-            cookie = None
             global PROXY
             while not cookie:
                 proxy = PROXY.get_proxy()
@@ -109,7 +107,7 @@ class CookieMiddleware(object):
                 # cookie获取失败，更换代理重新获取
                 if cookie is None or len(cookie) == 0:
                     PROXY.dirty = True
-                time.sleep(1)
+                    time.sleep(1)
             spider.cookie = cookie
         # 赋值cookie
         request.headers['Cookie'] = spider.cookie

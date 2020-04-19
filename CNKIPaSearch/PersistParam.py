@@ -110,6 +110,11 @@ class PersistParam(object):
         self.cur_page = 1
         return top
 
+    def pop_from_error_queue(self):
+        top = self.error.pop(0)
+        self.cur_page = top['cur_page']
+        self.request_queue.append(top['values'])
+
     def _load_from_dir(self):
         queue = []
 
