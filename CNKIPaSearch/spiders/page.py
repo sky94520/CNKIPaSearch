@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
+import math
 import scrapy
 from urllib.parse import urlencode, urlparse, parse_qsl
 from . import IdentifyingCodeError
@@ -37,6 +38,8 @@ class PageSpider(scrapy.Spider):
         basedir = self.settings.get('BASEDIR')
         self.logger.info('the file path is %s', basedir)
         self.params = PersistParam(basedir)
+        if self.request_queue_empty:
+            return None
         # 获取链接的位置
         request = self._create_request(self.params.cur_page)
         self.logger.info('开始爬取')
@@ -62,7 +65,8 @@ class PageSpider(scrapy.Spider):
         if total_count > self.settings.get('MAX_PATENT_NUM'):
             yield self._create_group_request()
             return
-        max_page = min(120, total_count // self.settings.get('PATENT_NUMBER_PER_PAGE', 50))
+        max_page = min(120,
+                       math.ceil(total_count / self.settings.get('PATENT_NUMBER_PER_PAGE', 50)))
         # 返回items
         yield item
         # TODO:开启新的请求
@@ -73,7 +77,6 @@ class PageSpider(scrapy.Spider):
             self.params.request_success()
         # 回写checkpoint
         self.params.save()
-        # if len(self.params.request_queue) == 0:
         if self.request_queue_empty:
             return None
         yield self._create_request(self.params.cur_page)

@@ -1,6 +1,16 @@
 from datetime import datetime, timedelta
 
 
+class ThesisLevel(object):
+    """
+    专利类型 发明公开 外观设计和实用新型 并未用到
+    TODO: 必须是字符串
+    """
+    INVENT_PATENT = 1
+    DESIGN_PATENT = 2
+    UTILITY_PATENT = 3
+
+
 class BaseConfig(object):
     @staticmethod
     def _get_now_gmt_time():
@@ -15,6 +25,12 @@ class BaseConfig(object):
         return text
 
     @staticmethod
+    def _update_thesis_level(params, **kwargs):
+        """专利类型"""
+        if 'thesis_level' in kwargs:
+            params['@thesislevel'] = '专利类别=%s' % kwargs['thesis_level']
+
+    @staticmethod
     def is_matching(datum):
         """根据数据中带有的类型，判断是否使用本类"""
         return False
@@ -22,6 +38,7 @@ class BaseConfig(object):
 
 class ApplicantConfig(BaseConfig):
     """申请人配置"""
+
     @staticmethod
     def get_params(applicant):
         params = {
@@ -51,6 +68,7 @@ class ApplicantConfig(BaseConfig):
 
 class ApplicantAndDateConfig(BaseConfig):
     """申请人 专利公开日期 配置"""
+
     @staticmethod
     def get_params(applicant, from_date, to_date):
         params = {
@@ -83,6 +101,7 @@ class ApplicantAndDateConfig(BaseConfig):
 
 class ApplicantsAndDateConfig(BaseConfig):
     """申请人 公开日期"""
+
     @staticmethod
     def get_params(applicants, from_date, to_date):
         """
@@ -125,9 +144,10 @@ class ApplicantsAndDateConfig(BaseConfig):
 
 
 class MainClsNumberConfig(BaseConfig):
-    """主分类号配置 txt_1_value1设置 仅仅发明公开"""
+    """主分类号配置 txt_1_value1设置"""
+
     @staticmethod
-    def get_params(main_cls_number):
+    def get_params(main_cls_number, **kwargs):
         params = {
             "action": "",
             "NaviCode": "*",
@@ -139,7 +159,6 @@ class MainClsNumberConfig(BaseConfig):
             "ConfigFile": "SCPD.xml",
             "db_opt": "SCOD",
             "db_value": "中国专利数据库",
-            "@thesislevel": "专利类别=1",
             "txt_1_sel": "CLZ$=|?",
             "txt_1_value1": main_cls_number,
             "txt_1_relation": "#CNKI_AND",
@@ -147,6 +166,7 @@ class MainClsNumberConfig(BaseConfig):
             "his": 0,
             "__": BaseConfig._get_now_gmt_time()
         }
+        BaseConfig._update_thesis_level(params, **kwargs)
         return params
 
     @staticmethod
@@ -188,4 +208,3 @@ def get_config_class(datum):
     for config_class in configurations:
         if config_class.is_matching(datum):
             return config_class
-

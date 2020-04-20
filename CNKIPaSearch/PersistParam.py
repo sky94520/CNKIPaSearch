@@ -6,6 +6,7 @@ desc: 持久化变量，主要用在Page参数内的一些持久化变量
 """
 import os
 import json
+import shutil
 from datetime import datetime, timedelta
 from .utils import date2str, str2date
 
@@ -34,6 +35,9 @@ class PersistParam(object):
         self.request_queue = json_data.get('request_queue', [])
         self.done = json_data.get('done', [])
         self.error = json_data.get('error', [])
+        # 存在checkpoint，但是已经全部读取完成，则重新遍历文件夹
+        if len(self.request_queue) == 0 and len(self.error) == 0:
+            self.request_queue = self._load_from_dir()
 
     def save(self):
         with open(self.filename, 'w', encoding='utf-8') as fp:
@@ -117,8 +121,8 @@ class PersistParam(object):
 
     def _load_from_dir(self):
         queue = []
-
         path = os.path.join(self.basedir, 'files', 'pending')
+        another_path = os.path.join(self.basedir, 'files', 'read')
         # 遍历整个page_links文件夹
         for parent, dirnames, filenames in os.walk(path, followlinks=True):
             # 遍历所有的文件
@@ -126,4 +130,8 @@ class PersistParam(object):
                 full_filename = os.path.join(parent, filename)
                 with open(full_filename, 'r', encoding='utf-8') as fp:
                     queue.extend(json.load(fp))
+                # 移动文件
+        # 把pending文件夹全部移走
+        shutil.move(path, another_path)
+        self.save()
         return queue
