@@ -121,9 +121,7 @@ class CookieMiddleware(object):
         headers = {'Cookie': cookie}
         """
         # 动态获取配置类
-        if not self.config.is_matching(values):
-            self.config = get_config_class(values)
-        params = self.config.get_params(**values)
+        params = BaseConfig.get_config_params(values)
         params.update(**kwargs)
         url = 'http://kns.cnki.net/kns/request/SearchHandler.ashx'
         try:
