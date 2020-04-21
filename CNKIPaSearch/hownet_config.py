@@ -11,6 +11,10 @@ class ThesisLevel(object):
     UTILITY_PATENT = 3
 
 
+FROM_DATE_KEY = 'date_gkr_from'
+TO_DATE_KEY = 'date_gkr_to'
+
+
 class BaseConfig(object):
 
     @staticmethod
@@ -18,7 +22,7 @@ class BaseConfig(object):
         params = BaseConfig._get_base_params()
         """工厂函数，用于通过数据的格式来选择配置"""
         # 互斥
-        if 'applicant' in datum and len(datum) == 1:
+        if 'applicant' in datum:
             BaseConfig._set_applicant(params, **datum)
         elif 'applicants' in datum:
             BaseConfig._set_applicants(params, **datum)
@@ -28,7 +32,7 @@ class BaseConfig(object):
             BaseConfig._set_main_cls_number(params, **datum)
 
         # 公开日
-        if 'date_gkr_from' in datum and 'date_gkr_to' in datum:
+        if FROM_DATE_KEY in datum and TO_DATE_KEY in datum:
             BaseConfig._update_gkr(params, **datum)
         # 专利类型
         if 'thesis_level' in datum:
@@ -67,8 +71,8 @@ class BaseConfig(object):
 
     @staticmethod
     def _update_gkr(params, **kwargs):
-        params['date_gkr_from'] = kwargs['date_gkr_from']
-        params['date_gkr_to'] = kwargs['date_gkr_to']
+        params[FROM_DATE_KEY] = kwargs[FROM_DATE_KEY]
+        params[TO_DATE_KEY] = kwargs[TO_DATE_KEY]
 
     @staticmethod
     def _update_thesis_level(params, **kwargs):

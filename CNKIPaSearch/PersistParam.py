@@ -6,9 +6,11 @@ desc: 持久化变量，主要用在Page参数内的一些持久化变量
 """
 import os
 import json
+import logging
 import shutil
 from datetime import datetime, timedelta
 from .utils import date2str, str2date
+from .hownet_config import FROM_DATE_KEY, TO_DATE_KEY
 
 
 class PersistParam(object):
@@ -80,26 +82,26 @@ class PersistParam(object):
                 from_year = year
 
             if count > maximum:
-                if 'from_date' in top:
-                    from_date, to_date = str2date(top['from_date']), str2date(top['to_date'])
+                if FROM_DATE_KEY in top and TO_DATE_KEY in top:
+                    from_date, to_date = str2date(top[FROM_DATE_KEY]), str2date(top[TO_DATE_KEY])
                 else:
                     from_date, to_date = datetime(year, 1, 1), (now if year == now.year else datetime(year, 12, 31))
                 delta = (to_date - from_date) / 2
                 j, dates = 0, [from_date, from_date + delta, from_date + delta + timedelta(1), to_date]
                 while j < len(dates):
                     datum = top.copy()
-                    datum['from_date'] = date2str(date=dates[j])
-                    datum['to_date'] = date2str(date=dates[j+1])
+                    datum[FROM_DATE_KEY] = date2str(date=dates[j])
+                    datum[TO_DATE_KEY] = date2str(date=dates[j+1])
                     j += 2
                     self.request_queue.insert(0, datum)
                 count, from_year = 0, None
             elif count + number > maximum:
                 datum = top.copy()
-                datum['from_date'] = date2str(year=from_year)
+                datum[FROM_DATE_KEY] = date2str(year=from_year)
                 if year == now.year:
-                    datum['to_date'] = date2str(date=now)
+                    datum[TO_DATE_KEY] = date2str(date=now)
                 else:
-                    datum['to_date'] = date2str(date=datetime(year, 12, 31))
+                    datum[TO_DATE_KEY] = date2str(date=datetime(year, 12, 31))
                 self.request_queue.insert(0, datum)
                 count, from_year = 0, None
             idx += 1
@@ -122,6 +124,10 @@ class PersistParam(object):
     def _load_from_dir(self):
         queue = []
         path = os.path.join(self.basedir, 'files', 'pending')
+        if not os.path.exists(path):
+            logging.warning('%s not exists' % path)
+            return []
+
         another_path = os.path.join(self.basedir, 'files', 'read')
         # 遍历整个page_links文件夹
         for parent, dirnames, filenames in os.walk(path, followlinks=True):
