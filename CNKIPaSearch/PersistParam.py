@@ -27,7 +27,7 @@ class PersistParam(object):
 
     def load(self):
         # 文件不存在，则尝试从文件夹中读取
-        if not os.path.isfile(self.filename):
+        if not os.path.exists(self.filename):
             self.request_queue = self._load_from_dir()
             return
         fp = open(self.filename, 'r', encoding='utf-8')
