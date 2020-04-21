@@ -7,4 +7,4 @@ COPY requirements.txt /code
 
 RUN pip install -r requirements.txt
 
-CMD python3 run_page.py
+CMD python3 run_page_and_detail.py
