@@ -5,6 +5,6 @@ WORKDIR /code
 
 COPY requirements.txt /code
 
-RUN pip install -r requirements.txt
+RUN pip install -i https://pypi.tuna.tsinghua.edu.cn/simple -r requirements.txt
 
 CMD python3 run_page.py
