@@ -119,6 +119,7 @@ class PageSpider(scrapy.Spider):
         if pager is None:
             raise IdentifyingCodeError('出现验证码')
         total_count = self._get_total_count(pager)
+        self.logger.info('the total count is %d' % total_count)
         # 专利条目数组
         tr_list = response.xpath("//table[@class='GridTableContent']//tr")
         length = len(tr_list)

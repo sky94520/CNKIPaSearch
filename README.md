@@ -1,4 +1,5 @@
 # 专利页面爬虫(请酌情爬取)
+>本爬虫爬取链接为[知网中国专利](http://nvsm.cnki.net/kns/brief/result.aspx?dbprefix=scpd)
 >注：本项目为v2，第一版参见：[CrawlPage](https://github.com/sky94520/CrawlPage)<br>
 >该版本目前最多能爬取的专利是6000条，v1可以完全爬取，但代码方面难以维护。
 >针对知网专利，本代码由两部分组成:<br>
@@ -20,6 +21,15 @@
 >files/html/ detail.py爬虫爬取到的详情页(html格式)保存路径 <br>
 >files/detail detail爬虫爬取到的详情页(json格式)保存路径
 ## 配置文件
+>### pending/ *.json
+>```
+>{
+>   "keyword": "5G",
+>   "condition": "and",
+>   "main_cls_number": "H04L"
+>}
+>```
+>表示搜索主题为5G，并且主分类号为H04L的所有中国专利
 >### CNKIPaSearch.config
 >该配置文件目前仅仅有一个变量，那就是PROXY_URL，用于提供代理：
 >config.py
