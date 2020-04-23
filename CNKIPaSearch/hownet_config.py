@@ -36,6 +36,22 @@ class BaseConfig(object):
     def get_config_params(datum):
         params = BaseConfig._get_base_params()
         """工厂函数，用于通过数据的格式来选择配置"""
+        # 专业检索
+        if 'expertvalue' in datum:
+            params['expertvalue'] = datum['expertvalue']
+        else:
+            BaseConfig._advanced_search(params, datum)
+        # 公开日
+        if FROM_DATE_KEY in datum and TO_DATE_KEY in datum:
+            BaseConfig._update_gkr(params, **datum)
+        # 专利类型
+        if 'thesis_level' in datum:
+            BaseConfig._update_thesis_level(params, **datum)
+        return params
+
+    @staticmethod
+    def _advanced_search(params, datum):
+        """知网 高级检索"""
         idx, logical_idx = 1, 1
         for key, value in datum.items():
             if key in CONDITIONS:
@@ -45,13 +61,6 @@ class BaseConfig(object):
             # 或or 与 and
             elif idx > 1:
                 params["txt_%d_logical" % idx] = value
-        # 公开日
-        if FROM_DATE_KEY in datum and TO_DATE_KEY in datum:
-            BaseConfig._update_gkr(params, **datum)
-        # 专利类型
-        if 'thesis_level' in datum:
-            BaseConfig._update_thesis_level(params, **datum)
-        return params
 
     @staticmethod
     def _get_now_gmt_time():
