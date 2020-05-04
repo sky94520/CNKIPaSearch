@@ -130,3 +130,4 @@ class DetailSpider(scrapy.Spider):
                 self.err_count = 0
                 self.logger.error('出错次数为%d，睡眠10 s' % self.err_count)
                 time.sleep(10)
+
