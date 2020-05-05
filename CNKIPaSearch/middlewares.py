@@ -30,7 +30,7 @@ class GetFromLocalityMiddleware(object):
         # 提取出code
         filename = request.meta['publication_number']
         # 文件存放位置
-        path = request.meta['path']
+        path = request.meta['html_path']
         # 该路径存在该文件
         filepath = os.path.join(path, '%s.html' % filename)
         if os.path.exists(filepath):

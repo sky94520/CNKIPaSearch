@@ -98,8 +98,6 @@ class FilterPipeline(object):
                     item[key] = re.sub(self.pattern, '', value)
                 elif key in self.int_keys:
                     item[key] = int(value)
-            if 'response' in item:
-                del item['response']
         except Exception as e:
             # 在解析时出现错误，则报错后移除该item
             logger.error('process [%s] error: %s' % (item['publication_number'], e))
@@ -115,7 +113,7 @@ class SaveDetailHtmlPipeline(object):
         if 'load_from_local' in response.meta and response.meta['load_from_local']:
             return item
 
-        path = response.meta['path']
+        path = response.meta['html_path']
         publication_number = response.meta['publication_number']
 
         if not os.path.exists(path):
@@ -140,7 +138,15 @@ class SaveDetailJsonPipeline(object):
             os.makedirs(self.save_path)
 
     def process_item(self, item, spider):
-        filename = os.path.join(self.save_path, '%s.json' % item['publication_number'])
+        path = self.save_path
+        if 'response' in item:
+            path = item['response'].meta['detail_path']
+            del item['response']
+
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        filename = os.path.join(path, '%s.json' % item['publication_number'])
         with open(filename, "w", encoding='utf-8') as fp:
             fp.write(json.dumps(dict(item), ensure_ascii=False, indent=2))
         return item

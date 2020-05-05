@@ -19,7 +19,6 @@ class DetailSpider(scrapy.Spider):
             'CNKIPaSearch.middlewares.ProxyMiddleware': 843,
         },
         'ITEM_PIPELINES': {
-
             'CNKIPaSearch.pipelines.SaveDetailHtmlPipeline': 300,
             'CNKIPaSearch.pipelines.FilterPipeline': 301,
             'CNKIPaSearch.pipelines.SaveDetailJsonPipeline': 302,
@@ -57,15 +56,17 @@ class DetailSpider(scrapy.Spider):
             # 遍历所有的文件
             for filename in filenames:
                 full_filename = os.path.join(parent, filename)
-                # 工作路径
-                work_path = re.sub('page_links', 'html', parent)
+                # HTML保存路径和detail保存路径
+                html_path = re.sub('page_links', 'html', parent)
+                detail_path = re.sub('page_links', 'detail', parent)
                 # 打开该文件
                 fp = open(full_filename, 'r', encoding='utf-8')
                 json_data = json.load(fp)
                 fp.close()
                 # 解析并yield
                 for datum in json_data:
-                    datum['path'] = work_path
+                    datum['html_path'] = html_path
+                    datum['detail_path'] = detail_path
                     yield datum
                 self.logger.info('File[%s] has loaded' % filename)
 
@@ -73,7 +74,8 @@ class DetailSpider(scrapy.Spider):
         params = {'dbcode': 'scpd', 'dbname': datum['dbname'], 'filename': datum['filename']}
         url = '%s?%s' % (self.base_url, urlencode(params))
         meta = {
-            'path': datum['path'],
+            'html_path': datum['html_path'],
+            'detail_path': datum['detail_path'],
             'title': datum['title'],
             'max_retry_times': self.crawler.settings.get('MAX_RETRY_TIMES'),
             'publication_number': datum['filename'],
