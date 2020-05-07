@@ -145,7 +145,8 @@ class PageSpider(scrapy.Spider):
             titles = tr.xpath('./td[2]/a//text()').extract()
             datum['title'] = ''.join(titles)
             datum['inventor'] = tr.xpath('./td[3]/text()').extract_first()
-            datum['applicants'] = tr.xpath('./td[4]//text()').extract_first()
+            applicants = tr.xpath('./td[4]//text()').extract()
+            datum['applicants'] = ''.join(applicants)
             datum['application_date'] = tr.xpath('./td[5]/text()').extract_first()
             datum['publication_date'] = tr.xpath('./td[6]/text()').extract_first()
 
