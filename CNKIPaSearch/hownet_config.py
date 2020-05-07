@@ -3,12 +3,13 @@ from datetime import datetime, timedelta
 
 class ThesisLevel(object):
     """
-    专利类型 发明公开 外观设计和实用新型 并未用到
+    专利类型 发明公开、外观设计、实用新型和发明授权 并未用到
     TODO: 必须是字符串
     """
     INVENT_PATENT = 1
     DESIGN_PATENT = 2
     UTILITY_PATENT = 3
+    GRANTED_PATENT = 4
 
 
 FROM_DATE_KEY = 'date_gkr_from'
