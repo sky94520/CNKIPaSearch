@@ -7,7 +7,7 @@ import scrapy
 from urllib.parse import urlencode
 from . import IdentifyingCodeError
 from ..items import NumberItem
-from ..PersistParam import PersistParam
+from ..PagePersistParam import PagePersistParam
 
 
 class NumberSpider(scrapy.Spider):
@@ -37,7 +37,7 @@ class NumberSpider(scrapy.Spider):
         """
         basedir = self.settings.get('BASEDIR')
         self.logger.info('the file path is %s', basedir)
-        self.params = PersistParam(basedir)
+        self.params = PagePersistParam(basedir)
         # 获取链接的位置
         request = self._create_request(self.params.cur_page)
         self.logger.info('开始爬取')

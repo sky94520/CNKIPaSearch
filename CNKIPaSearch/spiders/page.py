@@ -5,7 +5,7 @@ import scrapy
 from urllib.parse import urlencode, urlparse, parse_qsl
 from . import IdentifyingCodeError
 from ..items import SearchItem
-from ..PersistParam import PersistParam
+from ..PagePersistParam import PagePersistParam
 from ..hownet_config import BaseConfig
 
 
@@ -37,7 +37,7 @@ class PageSpider(scrapy.Spider):
         """
         basedir = self.settings.get('BASEDIR')
         self.logger.info('the file path is %s', basedir)
-        self.params = PersistParam(basedir)
+        self.params = PagePersistParam(basedir)
         if self.request_queue_empty:
             return None
         # 获取链接的位置

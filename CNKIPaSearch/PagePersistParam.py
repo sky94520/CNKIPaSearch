@@ -13,14 +13,14 @@ from .utils import date2str, str2date
 from .hownet_config import FROM_DATE_KEY, TO_DATE_KEY
 
 
-class PersistParam(object):
+class PagePersistParam(object):
 
     def __init__(self, basedir):
         self.basedir = basedir
-        self.filename = os.path.join(self.basedir, 'files', 'checkpoint')
+        # 保存中断
+        self.filename = os.path.join(self.basedir, 'files', 'page_checkpoint.json')
         self.cur_page = 1
         self.request_queue = None  # 队首元素作为当前进行元素
-        self.done = []
         self.error = []  # 错误的数据
         # 进行加载数据
         self.load()
@@ -35,7 +35,6 @@ class PersistParam(object):
         fp.close()
         self.cur_page = json_data.get('cur_page', 1)
         self.request_queue = json_data.get('request_queue', [])
-        self.done = json_data.get('done', [])
         self.error = json_data.get('error', [])
         # 存在checkpoint，但是已经全部读取完成，则重新遍历文件夹
         if len(self.request_queue) == 0 and len(self.error) == 0:
@@ -46,16 +45,14 @@ class PersistParam(object):
             json.dump({
                 'cur_page': self.cur_page,
                 'request_queue': self.request_queue,
-                'done': self.done,
                 'error': self.error,
             }, fp, ensure_ascii=False, indent=1)
 
     def request_success(self):
         """
-        从请求队列中删除队首的元素，并存放在self.done数组中
+        从请求队列中删除队首的元素
         """
         top = self.request_queue.pop(0)
-        self.done.append(top)
         self.cur_page = 1
         return top
 
@@ -129,15 +126,19 @@ class PersistParam(object):
             return []
 
         another_path = os.path.join(self.basedir, 'files', 'read')
-        # 遍历整个page_links文件夹
+        # 遍历整个page_links文件夹 得到待移动的文件
+        moving_files = []
         for parent, dirnames, filenames in os.walk(path, followlinks=True):
             # 遍历所有的文件
             for filename in filenames:
                 full_filename = os.path.join(parent, filename)
                 with open(full_filename, 'r', encoding='utf-8') as fp:
                     queue.extend(json.load(fp))
-                # 移动文件
-        # 把pending文件夹全部移走
-        shutil.move(path, another_path)
+                moving_files.append(full_filename)
         self.save()
+        # 移动文件
+        if not os.path.exists(another_path):
+            os.makedirs(another_path)
+        for moving_file in moving_files:
+            shutil.move(moving_file, another_path)
         return queue
