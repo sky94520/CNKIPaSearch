@@ -64,7 +64,7 @@ class RetryOrErrorMiddleware(RetryMiddleware):
 
     def process_exception(self, request, exception, spider):
         # 出现错误，再次请求
-        logger.warning(exception)
+        logger.warning('RetryOrError: %s' % exception)
         PROXY.dirty = True
         return request
 

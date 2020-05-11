@@ -120,12 +120,12 @@ class PagePersistParam(object):
 
     def _load_from_dir(self):
         queue = []
-        path = os.path.join(self.basedir, 'files', 'pending')
+        path = os.path.join(self.basedir, 'files', 'page_pending')
         if not os.path.exists(path):
             logging.warning('%s not exists' % path)
             return []
 
-        another_path = os.path.join(self.basedir, 'files', 'read')
+        another_path = os.path.join(self.basedir, 'files', 'page_read')
         # 遍历整个page_links文件夹 得到待移动的文件
         moving_files = []
         for parent, dirnames, filenames in os.walk(path, followlinks=True):
@@ -140,5 +140,11 @@ class PagePersistParam(object):
         if not os.path.exists(another_path):
             os.makedirs(another_path)
         for moving_file in moving_files:
-            shutil.move(moving_file, another_path)
+            # 存在文件
+            try:
+                shutil.move(moving_file, another_path)
+            except Exception as e:
+                logging.warning(e)
+            if os.path.exists(moving_file):
+                os.remove(moving_file)
         return queue

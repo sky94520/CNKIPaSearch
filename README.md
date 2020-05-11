@@ -12,16 +12,20 @@
 >4. 当某一块爬取完成后，page爬虫检查队列是否有数据，有则设置断点，并开始爬取;
 >5. 知网的搜索条件是得到cookie，相同的搜索条件对应的cookie是相同的;当出现验证码的时候进行重新请求cookie即可（也可以进行识别）
 >6. hownet_config.py 提供了一些常用的知网搜索页面配置类，可根据条件自行添加和修改
->7. PersistParam.py 该文件主要负责遍历/files/pending/下的所有json格式文件，并把每一个字典作为一个请求。
+>7. PagePersistParam.py 该文件主要负责遍历/files/pending/下的所有json格式文件，并把每一个字典作为一个请求，该类用于page爬虫的断点
 ##文件夹说明
 >files/ 保存着待爬取文件，已爬取文件等 <br>
+>files/pending run_page_and_detail.py遍历此文件夹
 >files/page 保存了根据条件爬取到的html文件 <br>
->files/page_links 保存了根据条件爬取到并解析完成的json格式文件 <br>
->files/pending/ 保存着待爬取文件，需要搭配hownet_config.py下的配置类使用。[格式](#env)<br>
+>files/page_links 保存了根据条件爬取到并解析完成的json格式文件 page.py爬虫调用此文件夹 <br>
+>files/page_pending/ 保存着待爬取文件，需要搭配hownet_config.py下的配置类使用。[格式](#env)<br>
+>files/page_read/ 保存了爬取完成后的文件，从page_pending=>page_read
 >files/html/ detail.py爬虫爬取到的详情页(html格式)保存路径 <br>
 >files/detail detail爬虫爬取到的详情页(json格式)保存路径
+>page_checkpoint.json page.py爬虫的checkpoint
+>checkpoint.json run_page_and_detail.py需要的checkpoint
 ## 配置文件
->### pending/ *.json
+>### pending/ *.json 或者 page_pending/ *.json
 >```
 >{
 >   "keyword": "5G",
@@ -124,6 +128,8 @@
 >       value = td.next()
 >       item[key] = value
 >```
+>## 3.run_page_and_detail.py
+>以/pending下的每个dict作为一条，先调用page.py 然后调用detail.py，以此类推
 ## Proxy
 > 每个请求都会重试若干次以上（比如代理不可用等问题都会使得请求失败），同时会在最后一次尝试不再使用代理
 >如果最后一次仍然失败，则将该出错记录下来。
