@@ -14,6 +14,9 @@ import operator
 import datetime
 from scrapy.exceptions import DropItem
 from .items import PatentItem
+from CNKIPaSearch.utils import load_session
+from CNKIPaSearch.config import MYSQL_URI
+from CNKIPaSearch.utils.models import batch_import_patent
 
 
 logger = logging.getLogger(__name__)
@@ -152,6 +155,21 @@ class SaveDetailJsonPipeline(object):
         return item
 
 
+class MySQLDetailPipeline(object):
+    def __init__(self):
+        self.session = None
+
+    def open_spider(self, spider):
+        self.session = load_session(MYSQL_URI)
+
+    def process_item(self, item, spdier):
+        batch_import_patent(item, self.session)
+        return item
+
+    def close_spider(self, spider):
+        self.session.close()
+
+
 class SaveNumberCsvPipeline(object):
     @classmethod
     def from_crawler(cls, crawler):
@@ -197,6 +215,7 @@ class SaveNumberCsvPipeline(object):
 
 
 class MongoPipeline(object):
+    """目前并未用到"""
     def __init__(self, mongo_uri, mongo_db):
         self.mongo_uri = mongo_uri
         self.mongo_db = mongo_db
