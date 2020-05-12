@@ -5,7 +5,7 @@ import scrapy
 from urllib.parse import urlencode, urlparse, parse_qsl
 from . import IdentifyingCodeError
 from ..items import SearchItem
-from ..PagePersistParam import PagePersistParam
+from CNKIPaSearch.params.PagePersistParam import PagePersistParam
 from ..hownet_config import BaseConfig
 
 
