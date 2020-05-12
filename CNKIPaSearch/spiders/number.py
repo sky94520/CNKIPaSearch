@@ -139,6 +139,11 @@ class NumberSpider(scrapy.Spider):
         return self.params.request_queue[0]
 
     @property
+    def request_queue_empty(self):
+        """只有请求队列和错误队列中同时为空，才代表空"""
+        return len(self.params.request_queue) == 0 and len(self.params.error) == 0
+
+    @property
     def cur_page(self):
         return self.params.cur_page
 
