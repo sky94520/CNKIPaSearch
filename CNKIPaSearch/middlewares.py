@@ -9,6 +9,7 @@ import time
 import logging
 import requests
 from scrapy.http import HtmlResponse
+from scrapy.exceptions import IgnoreRequest
 from scrapy.downloadermiddlewares.retry import RetryMiddleware
 from .hownet_config import *
 from .Proxy import Proxy
@@ -30,11 +31,16 @@ class GetFromLocalityMiddleware(object):
         # 提取出code
         filename = request.meta['publication_number']
         # 文件存放位置
-        path = request.meta['html_path']
+        html_path = request.meta['html_path']
+        detail_path = request.meta['detail_path']
         # 该路径存在该文件
-        filepath = os.path.join(path, '%s.html' % filename)
-        if os.path.exists(filepath):
-            fp = open(filepath, 'rb')
+        html_full_path = os.path.join(html_path, '%s.html' % filename)
+        detail_full_path = os.path.join(detail_path, '%s.json' % filename)
+        # 同时存在，则不再处理该request
+        if os.path.exists(html_full_path) and os.path.exists(detail_full_path):
+            raise IgnoreRequest('json file has exists.')
+        if os.path.exists(html_full_path):
+            fp = open(html_full_path, 'rb')
             body = fp.read()
             fp.close()
             # 从本地加载的文件不再重新写入
@@ -63,6 +69,8 @@ class RetryOrErrorMiddleware(RetryMiddleware):
         # super()._retry(request, reason, spider)
 
     def process_exception(self, request, exception, spider):
+        if isinstance(exception, IgnoreRequest):
+            return
         # 出现错误，再次请求
         logger.warning('RetryOrError: %s' % exception)
         PROXY.dirty = True
