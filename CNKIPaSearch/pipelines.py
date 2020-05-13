@@ -12,11 +12,14 @@ import pymongo
 import logging
 import operator
 import datetime
+from pymysql import cursors
+from twisted.enterprise import adbapi
 from scrapy.exceptions import DropItem
 from .items import PatentItem
 from CNKIPaSearch.utils import load_session
-from CNKIPaSearch.config import MYSQL_URI
+from CNKIPaSearch.config import MYSQL_URI, MYSQL_CONFIG
 from CNKIPaSearch.utils.models import batch_import_patent
+from CNKIPaSearch.utils.batch import import_patent
 
 
 logger = logging.getLogger(__name__)
@@ -156,18 +159,49 @@ class SaveDetailJsonPipeline(object):
 
 
 class MySQLDetailPipeline(object):
-    def __init__(self):
-        self.session = None
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(
+            basedir=crawler.settings.get('BASEDIR'),
+        )
+    def __init__(self, basedir):
+        # self.session = None
+        self.db_pool = None
+        self.save_path = os.path.join(basedir, 'files', 'detail')
+        if not os.path.exists(self.save_path):
+            os.makedirs(self.save_path)
 
     def open_spider(self, spider):
-        self.session = load_session(MYSQL_URI)
+        # self.session = load_session(MYSQL_URI)
+        self.db_pool = adbapi.ConnectionPool('pymysql', cursorclass=cursors.DictCursor, **MYSQL_CONFIG)
 
     def process_item(self, item, spdier):
-        batch_import_patent(item, self.session)
+        # batch_import_patent(item, self.session)
+        query = self.db_pool.runInteraction(import_patent, item, self.handle_success)
+        query.addErrback(self.handle_error, item, spdier)
         return item
 
+    def handle_success(self, item):
+        """插入数据库成功，才创建文件"""
+        path = self.save_path
+        if 'response' in item:
+            path = item['response'].meta['detail_path']
+            del item['response']
+
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        filename = os.path.join(path, '%s.json' % item['publication_number'])
+        with open(filename, "w", encoding='utf-8') as fp:
+            fp.write(json.dumps(dict(item), ensure_ascii=False, indent=2))
+
+    def handle_error(self, failure, item, spider):
+        logger.error(failure)
+
     def close_spider(self, spider):
-        self.session.close()
+        # self.session.close()
+        self.db_pool.close()
 
 
 class SaveNumberCsvPipeline(object):
@@ -212,55 +246,3 @@ class SaveNumberCsvPipeline(object):
 
     def close_spider(self, spider):
         pass
-
-
-class MongoPipeline(object):
-    """目前并未用到"""
-    def __init__(self, mongo_uri, mongo_db):
-        self.mongo_uri = mongo_uri
-        self.mongo_db = mongo_db
-        self.client = None
-        self.db = None
-        # 缓冲区 一定数量则填充一次
-        self.buffer = []
-
-    @classmethod
-    def from_crawler(cls, crawler):
-        return cls(
-            mongo_uri=crawler.settings.get('MONGO_URI'),
-            mongo_db=crawler.settings.get('MONGO_DB')
-        )
-
-    def open_spider(self, spider):
-        self.client = pymongo.MongoClient(self.mongo_uri)
-        self.db = self.client[self.mongo_db]
-
-    def process_item(self, item, spdier):
-        # 通过application_number保证唯一
-        collection = self.db[item.collection]
-        result = collection.find_one({'publication_number': item['publication_number']}, {'_id': 1})
-        if result is not None:
-            raise DropItem('the %s has already saved in database' % item['publication_number'])
-        cur_count, max_count = spdier.counter[item['source']]
-        # 只有在该json文件全部链接都爬取完成的时候，才会写入到redis中
-        if cur_count + 1 >= max_count:
-            spdier.db.sadd('page_links', item['source'])
-            spdier.counter.pop(item['source'])
-        else:
-            spdier.counter[item['source']] = (cur_count + 1, max_count)
-
-        del item['source']
-        self.buffer.append(dict(item))
-        # 每1000个数据写入到数据库中
-        if len(self.buffer) >= 100:
-            self.db[PatentItem.collection].insert_many(self.buffer)
-            self.buffer.clear()
-        # 不返回item，则不再输出到控制台
-        # return item
-
-    def close_spider(self, spider):
-        if len(self.buffer) > 0:
-            self.db[PatentItem.collection].insert_many(self.buffer)
-            self.buffer.clear()
-        self.client.close()
-

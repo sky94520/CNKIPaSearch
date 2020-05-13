@@ -1,3 +1,6 @@
+"""
+无法异步处理，目前已经废弃
+"""
 import re
 from . import Base
 from sqlalchemy import Table, Column, Integer, ForeignKey, String, Date, Text
@@ -149,3 +152,5 @@ def batch_import_patent(item, session):
                              patent_id=patent.id)
     session.add(patent_text)
     session.commit()
+
+
