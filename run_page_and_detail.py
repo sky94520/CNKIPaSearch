@@ -19,6 +19,8 @@ basedir = os.path.realpath(os.path.dirname(__name__))
 
 @defer.inlineCallbacks
 def crawl():
+    yield runner.crawl(PageSpider)
+    yield runner.crawl(DetailSpider)
     # 持久化
     param = TurnPersistParam(basedir)
     while len(param.request_queue) > 0:
