@@ -10,14 +10,14 @@
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 import os
+
 BOT_NAME = 'CNKIPaSearch'
 
 SPIDER_MODULES = ['CNKIPaSearch.spiders']
 NEWSPIDER_MODULE = 'CNKIPaSearch.spiders'
 
-
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'CNKIPaSearch (+http://www.yourdomain.com)'
+# USER_AGENT = 'CNKIPaSearch (+http://www.yourdomain.com)'
 # 限制并发请求数量
 CONCURRENT_REQUESTS = 4
 
@@ -36,6 +36,7 @@ REDIRECT_ENALBED = False
 HTTPERROR_ALLOWED_CODES = [404, 403, 401, 503]
 # 下载限制15秒为延时 默认180s
 DOWNLOAD_TIMEOUT = 15
+LOG_LEVEL = 'WARNING'
 
 # DOWNLOADER_MIDDLEWARES = {
 #     'CNKIPaSearch.middlewares.RetryOrErrorMiddleware': 550,
@@ -48,4 +49,3 @@ DOWNLOAD_TIMEOUT = 15
 #     'CNKIPaSearch.pipelines.JsonPipeline': 300,
 #     'CNKIPaSearch.pipelines.SavePagePipeline': 301,
 # }
-
