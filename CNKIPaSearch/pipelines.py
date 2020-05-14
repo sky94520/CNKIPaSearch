@@ -104,6 +104,9 @@ class FilterPipeline(object):
                     item[key] = re.sub(self.pattern, '', value)
                 elif key in self.int_keys:
                     item[key] = int(value)
+            if 'response' in item:
+                item['path'] = item['response'].meta['detail_path']
+                del item['response']
         except Exception as e:
             # 在解析时出现错误，则报错后移除该item
             logger.error('process [%s] error: %s' % (item['publication_number'], e))
@@ -145,9 +148,9 @@ class SaveDetailJsonPipeline(object):
 
     def process_item(self, item, spider):
         path = self.save_path
-        if 'response' in item:
-            path = item['response'].meta['detail_path']
-            del item['response']
+        if 'path' in item:
+            path = item['path']
+            del item['path']
 
         if not os.path.exists(path):
             os.makedirs(path)
@@ -186,9 +189,9 @@ class MySQLDetailPipeline(object):
     def handle_success(self, item):
         """插入数据库成功，才创建文件"""
         path = self.save_path
-        if 'response' in item:
-            path = item['response'].meta['detail_path']
-            del item['response']
+        if 'path' in item:
+            path = item['path']
+            del item['path']
 
         if not os.path.exists(path):
             os.makedirs(path)
@@ -199,9 +202,8 @@ class MySQLDetailPipeline(object):
 
     def handle_error(self, failure, item, spider):
         logger.error(failure)
-        if 'response' in item:
-            path = item['response'].meta['detail_path']
-            del item['response']
+        if 'path' in item:
+            del item['path']
 
     def close_spider(self, spider):
         # self.session.close()

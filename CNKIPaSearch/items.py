@@ -39,6 +39,7 @@ class PatentItem(scrapy.Item):
     }
     # 保存response
     response = scrapy.Field()
+    path = scrapy.Field()
     # 该url的来源文件
     source = scrapy.Field()
     # 专利名
