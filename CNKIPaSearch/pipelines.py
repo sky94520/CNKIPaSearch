@@ -199,11 +199,13 @@ class MySQLDetailPipeline(object):
         filename = os.path.join(path, '%s.json' % item['publication_number'])
         with open(filename, "w", encoding='utf-8') as fp:
             fp.write(json.dumps(dict(item), ensure_ascii=False, indent=2))
+        del item
 
     def handle_error(self, failure, item, spider):
         logger.error(failure)
         if 'path' in item:
             del item['path']
+        del item
 
     def close_spider(self, spider):
         # self.session.close()
