@@ -180,10 +180,9 @@ class MySQLDetailPipeline(object):
         self.db_pool = adbapi.ConnectionPool('pymysql', cursorclass=cursors.DictCursor, **MYSQL_CONFIG)
 
     def process_item(self, item, spdier):
-        # batch_import_patent(item, self.session)
         copy = dict(item)
-        # query = self.db_pool.runInteraction(import_patent, copy, self.handle_success)
-        # query.addErrback(self.handle_error, copy)
+        query = self.db_pool.runInteraction(import_patent, copy, self.handle_success)
+        query.addErrback(self.handle_error, copy)
         return DropItem()
 
     def handle_success(self, item):
@@ -200,11 +199,8 @@ class MySQLDetailPipeline(object):
         with open(filename, "w", encoding='utf-8') as fp:
             fp.write(json.dumps(dict(item), ensure_ascii=False, indent=2))
 
-        del item
-
     def handle_error(self, failure, item):
         logger.error(failure)
-        del item
 
     def close_spider(self, spider):
         # self.session.close()
