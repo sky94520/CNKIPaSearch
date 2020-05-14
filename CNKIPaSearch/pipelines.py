@@ -180,6 +180,7 @@ class MySQLDetailPipeline(object):
         # batch_import_patent(item, self.session)
         query = self.db_pool.runInteraction(import_patent, item, self.handle_success)
         query.addErrback(self.handle_error, item, spdier)
+        # warning:不能返回item，否则会造成内存泄漏
         # return item
 
     def handle_success(self, item):
