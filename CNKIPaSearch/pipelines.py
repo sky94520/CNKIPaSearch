@@ -182,8 +182,8 @@ class MySQLDetailPipeline(object):
     def process_item(self, item, spdier):
         # batch_import_patent(item, self.session)
         copy = dict(item)
-        query = self.db_pool.runInteraction(import_patent, copy, self.handle_success)
-        query.addErrback(self.handle_error, copy)
+        # query = self.db_pool.runInteraction(import_patent, copy, self.handle_success)
+        # query.addErrback(self.handle_error, copy)
         return DropItem()
 
     def handle_success(self, item):
