@@ -91,10 +91,10 @@ def import_patent(cursor, item, success_callback):
     applicant_results = select(cursor, select_applicant_sql, *applicants)
     applicant_id_mapping = {applicant['name']: applicant['id'] for applicant in applicant_results}
     insert_applicant_sql = """insert into applicant(name) values(?)"""
-    # for applicant in applicants:
-    #     if applicant not in applicant_id_mapping:
-    #         applicant_id = insert(cursor, insert_applicant_sql, applicant)
-    #         applicant_id_mapping[applicant] = applicant_id
+    for applicant in applicants:
+        if applicant not in applicant_id_mapping:
+            applicant_id = insert(cursor, insert_applicant_sql, applicant)
+            applicant_id_mapping[applicant] = applicant_id
     # 插入申请人-专利
     insert_app_patent_sql = """
     insert into applicant_patent(applicant_id, patent_id) values(?,?)
