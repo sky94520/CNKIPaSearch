@@ -183,7 +183,7 @@ class MySQLDetailPipeline(object):
         # batch_import_patent(item, self.session)
         query = self.db_pool.runInteraction(import_patent, item, self.handle_success)
         query.addErrback(self.handle_error)
-        return item
+        return DropItem()
 
     def handle_success(self, item):
         """插入数据库成功，才创建文件"""
