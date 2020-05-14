@@ -200,6 +200,8 @@ class MySQLDetailPipeline(object):
         with open(filename, "w", encoding='utf-8') as fp:
             fp.write(json.dumps(dict(item), ensure_ascii=False, indent=2))
 
+        del item
+
     def handle_error(self, failure, item):
         logger.error(failure)
         del item
