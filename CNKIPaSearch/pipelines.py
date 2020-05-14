@@ -199,6 +199,9 @@ class MySQLDetailPipeline(object):
 
     def handle_error(self, failure, item, spider):
         logger.error(failure)
+        if 'response' in item:
+            path = item['response'].meta['detail_path']
+            del item['response']
 
     def close_spider(self, spider):
         # self.session.close()
