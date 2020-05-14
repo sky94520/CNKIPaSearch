@@ -183,8 +183,7 @@ class MySQLDetailPipeline(object):
         # batch_import_patent(item, self.session)
         query = self.db_pool.runInteraction(import_patent, item, self.handle_success)
         query.addErrback(self.handle_error, item, spdier)
-        # warning:不能返回item，否则会造成内存泄漏
-        # return item
+        return item
 
     def handle_success(self, item):
         """插入数据库成功，才创建文件"""
@@ -199,13 +198,11 @@ class MySQLDetailPipeline(object):
         filename = os.path.join(path, '%s.json' % item['publication_number'])
         with open(filename, "w", encoding='utf-8') as fp:
             fp.write(json.dumps(dict(item), ensure_ascii=False, indent=2))
-        del item
 
     def handle_error(self, failure, item, spider):
         logger.error(failure)
         if 'path' in item:
             del item['path']
-        del item
 
     def close_spider(self, spider):
         # self.session.close()
