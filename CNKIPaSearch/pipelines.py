@@ -182,7 +182,7 @@ class MySQLDetailPipeline(object):
     def process_item(self, item, spdier):
         # batch_import_patent(item, self.session)
         query = self.db_pool.runInteraction(import_patent, item, self.handle_success)
-        query.addErrback(self.handle_error, item, spdier)
+        query.addErrback(self.handle_error)
         return item
 
     def handle_success(self, item):
@@ -199,10 +199,8 @@ class MySQLDetailPipeline(object):
         with open(filename, "w", encoding='utf-8') as fp:
             fp.write(json.dumps(dict(item), ensure_ascii=False, indent=2))
 
-    def handle_error(self, failure, item, spider):
+    def handle_error(self, failure):
         logger.error(failure)
-        if 'path' in item:
-            del item['path']
 
     def close_spider(self, spider):
         # self.session.close()
