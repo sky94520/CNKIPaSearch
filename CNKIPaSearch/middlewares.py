@@ -109,6 +109,7 @@ class CookieMiddleware(object):
             while not cookie:
                 proxy = PROXY.get_proxy()
                 proxies = {'http': proxy}
+                logger.info('使用代理%s' % proxy)
                 # 根据条件获取cookie
                 cookie = self.get_cookie(spider.request_datum, proxies)
                 logger.warning('获取cookie %s' % cookie)
