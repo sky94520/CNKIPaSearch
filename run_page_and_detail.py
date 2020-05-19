@@ -21,13 +21,13 @@ basedir = os.path.realpath(os.path.dirname(__name__))
 def crawl():
     yield runner.crawl(PageSpider)
     yield runner.crawl(DetailSpider)
-    # 持久化
+    # TODO:持久化 在容器中会存在问题
     param = TurnPersistParam(basedir)
     while len(param.request_queue) > 0:
         output = os.path.join('files', 'page_pending')
         if not os.path.exists(output):
             os.makedirs(output)
-        # 获取队列首部数据 dict
+        # TODO:获取队列首部数据 dict
         datum = param.pop()
         output_file = os.path.join(output, '%s.json' % list(datum.values())[0])
         with open(output_file, 'w', encoding='utf-8') as fp:

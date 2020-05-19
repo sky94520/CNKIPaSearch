@@ -162,27 +162,26 @@ class SaveDetailJsonPipeline(object):
 
 
 class MySQLDetailPipeline(object):
-
     @classmethod
-    def from_crawler(cls, crawler):
-        return cls(
-            basedir=crawler.settings.get('BASEDIR'),
-        )
-    def __init__(self, basedir):
+    def from_settings(cls, settings):
+        db_pool = adbapi.ConnectionPool('pymysql', cursorclass=cursors.DictCursor, **MYSQL_CONFIG)
+        basedir = settings.get('BASEDIR')
+        return cls(basedir, db_pool)
+
+    def __init__(self, basedir, pool):
         # self.session = None
-        self.db_pool = None
+        self.db_pool = pool
         self.save_path = os.path.join(basedir, 'files', 'detail')
         if not os.path.exists(self.save_path):
             os.makedirs(self.save_path)
 
-    def open_spider(self, spider):
-        # self.session = load_session(MYSQL_URI)
-        self.db_pool = adbapi.ConnectionPool('pymysql', cursorclass=cursors.DictCursor, **MYSQL_CONFIG)
+    # def open_spider(self, spider):
+    #     # self.session = load_session(MYSQL_URI)
 
     def process_item(self, item, spdier):
-        copy = dict(item)
-        query = self.db_pool.runInteraction(import_patent, copy, self.handle_success)
-        query.addErrback(self.handle_error, copy)
+        # copy = dict(item)
+        query = self.db_pool.runInteraction(import_patent, item, self.handle_success)
+        query.addErrback(self.handle_error)
         return DropItem()
 
     def handle_success(self, item):
@@ -199,7 +198,7 @@ class MySQLDetailPipeline(object):
         with open(filename, "w", encoding='utf-8') as fp:
             fp.write(json.dumps(dict(item), ensure_ascii=False, indent=2))
 
-    def handle_error(self, failure, item):
+    def handle_error(self, failure):
         logger.error(failure)
 
     def close_spider(self, spider):
