@@ -8,17 +8,13 @@ import re
 import os
 import csv
 import json
-import pymongo
+import time
 import logging
-import operator
 import datetime
 from pymysql import cursors
 from twisted.enterprise import adbapi
 from scrapy.exceptions import DropItem
-from .items import PatentItem
-from CNKIPaSearch.utils import load_session
 from CNKIPaSearch.config import MYSQL_URI, MYSQL_CONFIG
-from CNKIPaSearch.utils.models import batch_import_patent
 from CNKIPaSearch.utils.batch import import_patent, test
 
 
@@ -169,14 +165,10 @@ class MySQLDetailPipeline(object):
         return cls(basedir, db_pool)
 
     def __init__(self, basedir, pool):
-        # self.session = None
         self.db_pool = pool
         self.save_path = os.path.join(basedir, 'files', 'detail')
         if not os.path.exists(self.save_path):
             os.makedirs(self.save_path)
-
-    # def open_spider(self, spider):
-    #     # self.session = load_session(MYSQL_URI)
 
     def process_item(self, item, spdier):
         # copy = dict(item)
@@ -197,12 +189,12 @@ class MySQLDetailPipeline(object):
         filename = os.path.join(path, '%s.json' % item['publication_number'])
         with open(filename, "w", encoding='utf-8') as fp:
             fp.write(json.dumps(dict(item), ensure_ascii=False, indent=2))
+        return item
 
     def handle_error(self, failure):
         logger.error(failure)
 
     def close_spider(self, spider):
-        # self.session.close()
         self.db_pool.close()
 
 

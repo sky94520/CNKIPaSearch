@@ -77,8 +77,7 @@ def import_patent(cursor, item, success_callback):
     get_patent_sql = 'select publication_number from patent where publication_number=?'
     back = select_one(cursor, get_patent_sql, publication_number)
     if back:
-        success_callback(item)
-        return
+        return success_callback(item)
     # 插入专利数据
     insert_sql = """insert into patent(title,application_number,publication_number,publication_date,
     application_date,main_cls_number) values(?,?,?,?,?,?)"""
@@ -112,4 +111,4 @@ def import_patent(cursor, item, success_callback):
     insert_text_sql = """insert into patent_text(summary,sovereignty, patent_id) values(?,?,?)"""
     insert(cursor, insert_text_sql, summary, sovereignty, patent_id)
 
-    success_callback(item)
+    return success_callback(item)
