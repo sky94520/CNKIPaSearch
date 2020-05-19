@@ -69,7 +69,7 @@ class DetailSpider(scrapy.Spider):
                     datum['html_path'] = html_path
                     datum['detail_path'] = detail_path
                     yield datum
-                self.logger.info('File[%s] has loaded' % filename)
+                self.logger.info('File[%s] has loaded' % full_filename)
 
     def _create_request(self, datum):
         params = {'dbcode': 'scpd', 'dbname': datum['dbname'], 'filename': datum['filename']}
