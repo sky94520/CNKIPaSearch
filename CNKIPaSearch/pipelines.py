@@ -19,7 +19,7 @@ from .items import PatentItem
 from CNKIPaSearch.utils import load_session
 from CNKIPaSearch.config import MYSQL_URI, MYSQL_CONFIG
 from CNKIPaSearch.utils.models import batch_import_patent
-from CNKIPaSearch.utils.batch import import_patent
+from CNKIPaSearch.utils.batch import import_patent, test
 
 
 logger = logging.getLogger(__name__)
@@ -179,8 +179,8 @@ class MySQLDetailPipeline(object):
     #     # self.session = load_session(MYSQL_URI)
 
     def process_item(self, item, spdier):
-        copy = dict(item)
-        query = self.db_pool.runInteraction(import_patent, copy, self.handle_success)
+        # copy = dict(item)
+        query = self.db_pool.runInteraction(test, item, self.handle_success)
         query.addErrback(self.handle_error)
         return DropItem()
 
