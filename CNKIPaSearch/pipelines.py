@@ -15,7 +15,7 @@ from pymysql import cursors
 from twisted.enterprise import adbapi
 from scrapy.exceptions import DropItem
 from CNKIPaSearch.config import MYSQL_URI, MYSQL_CONFIG
-from CNKIPaSearch.utils.batch import import_patent, test
+from CNKIPaSearch.utils.batch import import_patent
 
 
 logger = logging.getLogger(__name__)
@@ -100,9 +100,6 @@ class FilterPipeline(object):
                     item[key] = re.sub(self.pattern, '', value)
                 elif key in self.int_keys:
                     item[key] = int(value)
-            if 'response' in item:
-                item['path'] = item['response'].meta['detail_path']
-                del item['response']
         except Exception as e:
             # 在解析时出现错误，则报错后移除该item
             logger.error('process [%s] error: %s' % (item['publication_number'], e))
@@ -179,9 +176,10 @@ class MySQLDetailPipeline(object):
     def handle_success(self, item):
         """插入数据库成功，才创建文件"""
         path = self.save_path
-        if 'path' in item:
-            path = item['path']
-            del item['path']
+        # 通过response来限制最大请求数
+        if 'response' in item:
+            path = item['response'].meta['detail_path']
+            del item['response']
 
         if not os.path.exists(path):
             os.makedirs(path)

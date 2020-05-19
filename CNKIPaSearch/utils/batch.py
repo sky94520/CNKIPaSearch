@@ -57,10 +57,6 @@ def insert_many(cursor, sql, *args):
     return _insert(cursor, sql, True, *args)
 
 
-def test(cursor, item, success_callback):
-    return
-
-
 def import_patent(cursor, item, success_callback):
     title = item['title']
     application_number = item['application_number']
