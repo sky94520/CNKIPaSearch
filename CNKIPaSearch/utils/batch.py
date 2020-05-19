@@ -29,18 +29,18 @@ def select(cursor, sql, *args):
     return _select(cursor, sql, False, *args)
 
 
-def _insert(cursor, sql, insert_many, *args):
+def _insert(cursor, sql, insertMany, *args):
     """
     insert语句
     :param sql: SQL语句 内部变量使用?
-    :param insert_many: 是否要插入多行
+    :param insertMany: 是否要插入多行
     :param args: SQL语句中要使用的变量
     :return: 返回插入的结果 插入失败则返回-1
     """
     logging.info('SQL: %s %s' % (sql, args if len(args) > 0 else ""))
     sql = sql.replace('?', '%s')
     # 利用本身的 execute 函数的特性，传入两个参数：sql语句与tuple类型的参数，以避免sql注入
-    if insert_many:
+    if insertMany:
         # 插入多行
         cursor.executemany(sql, args)
     else:
@@ -83,7 +83,7 @@ def import_patent(cursor, item, success_callback):
     insert_sql = """insert into patent(title,application_number,publication_number,publication_date,
     application_date,main_cls_number) values(?,?,?,?,?,?)"""
     patent_id = insert(cursor, insert_sql, title, application_number, publication_number, publication_date,
-                        application_date, main_cls_number)
+                       application_date, main_cls_number)
     # 获取ipc对应的id
     select_ipc_sql = "select * from ipc where code in (%s)" % ','.join(['?'] * len(cls_numbers))
     ipc_list = select(cursor, select_ipc_sql, *cls_numbers)
@@ -103,7 +103,8 @@ def import_patent(cursor, item, success_callback):
     insert_app_patent_sql = """
     insert into applicant_patent(applicant_id, patent_id) values(?,?)
     """
-    insert_many(cursor, insert_app_patent_sql, *[(applicant_id, patent_id) for applicant_id in applicant_id_mapping.values()])
+    insert_many(cursor, insert_app_patent_sql,
+                *[(applicant_id, patent_id) for applicant_id in applicant_id_mapping.values()])
     # 发明人
     insert_inventor_sql = """insert into inventor(name,patent_id) values(?,?)"""
     insert_many(cursor, insert_inventor_sql, *[(inventor, patent_id) for inventor in inventors])
@@ -112,4 +113,3 @@ def import_patent(cursor, item, success_callback):
     insert(cursor, insert_text_sql, summary, sovereignty, patent_id)
 
     success_callback(item)
-

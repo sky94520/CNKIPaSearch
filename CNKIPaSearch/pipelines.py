@@ -180,7 +180,7 @@ class MySQLDetailPipeline(object):
 
     def process_item(self, item, spdier):
         # copy = dict(item)
-        query = self.db_pool.runInteraction(test, item, self.handle_success)
+        query = self.db_pool.runInteraction(import_patent, item, self.handle_success)
         query.addErrback(self.handle_error)
         return DropItem()
 
