@@ -168,8 +168,8 @@ class MySQLDetailPipeline(object):
             os.makedirs(self.save_path)
 
     def process_item(self, item, spdier):
-        # copy = dict(item)
-        query = self.db_pool.runInteraction(import_patent, item, self.handle_success)
+        copy = dict(item)
+        query = self.db_pool.runInteraction(import_patent, copy, self.handle_success)
         query.addErrback(self.handle_error)
         return DropItem()
 
