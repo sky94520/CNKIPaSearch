@@ -53,8 +53,8 @@ def write_from_xlsx(filename, output_file, pass_line=None, limit=None):
 
 
 if __name__ == '__main__':
-    filename = '新建 XLSX 工作表.xlsx'
+    filename = '02-方宇.xls'
     output = os.path.join('files')
     if not os.path.exists(output):
         os.makedirs(output)
-    write_from_xlsx(filename, os.path.join(output, 'applicants.json'))
+    write_from_xlsx(filename, os.path.join(output, 'applicants.json'), pass_line=0)

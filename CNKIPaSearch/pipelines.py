@@ -8,9 +8,9 @@ import re
 import os
 import csv
 import json
-import time
 import logging
 import datetime
+import threading
 from pymysql import cursors
 from twisted.enterprise import adbapi
 from scrapy.exceptions import DropItem
@@ -193,6 +193,7 @@ class MySQLDetailPipeline(object):
         return item
 
     def handle_error(self, failure):
+        name = threading.current_thread().name
         logger.error(failure)
 
     def close_spider(self, spider):
