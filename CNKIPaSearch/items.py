@@ -20,6 +20,15 @@ class NumberItem(scrapy.Item):
     number = scrapy.Field()
 
 
+class StatusItem(scrapy.Item):
+    KEYS = ['date', 'status', 'information']
+    # define the fields for your item here like:
+    array = scrapy.Field()
+    response = scrapy.Field()
+    path = scrapy.Field()
+    publication_number = scrapy.Field()
+
+
 class PatentItem(scrapy.Item):
     # TODO:数据库集合名称 发明授权专利
     collection = 'invention_patent'

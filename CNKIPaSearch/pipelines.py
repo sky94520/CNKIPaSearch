@@ -107,6 +107,29 @@ class FilterPipeline(object):
             # 在解析时出现错误，则报错后移除该item
             logger.error('process [%s] error: %s' % (item['publication_number'], e))
             raise DropItem()
+        return item
+
+
+class FilterArrayPipeline(object):
+    """清除特殊字符"""
+    def __init__(self):
+        # 去除换行
+        self.text_keys = ['information']
+        self.pattern = re.compile(r'[\n|\r]+')
+
+    def process_item(self, item, spider):
+        try:
+            for idx, datum in enumerate(item['array']):
+                for key, value in datum.items():
+                    if key in self.text_keys:
+                        item['array'][idx][key] = re.sub(self.pattern, ' ', value)
+            if 'response' in item:
+                item['path'] = item['response'].meta['detail_path']
+                del item['response']
+        except Exception as e:
+            # 在解析时出现错误，则报错后移除该item
+            logger.error('process [%s] error: %s' % (item['publication_number'], e))
+            raise DropItem()
 
         return item
 
@@ -139,6 +162,33 @@ class SaveDetailJsonPipeline(object):
 
     def __init__(self, basedir):
         self.save_path = os.path.join(basedir, 'files', 'detail')
+        if not os.path.exists(self.save_path):
+            os.makedirs(self.save_path)
+
+    def process_item(self, item, spider):
+        path = self.save_path
+        if 'path' in item:
+            path = item['path']
+            del item['path']
+
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        filename = os.path.join(path, '%s.json' % item['publication_number'])
+        with open(filename, "w", encoding='utf-8') as fp:
+            fp.write(json.dumps(dict(item), ensure_ascii=False, indent=2))
+        return item
+
+
+class SaveStateJsonPipeline(object):
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(
+            basedir=crawler.settings.get('BASEDIR'),
+        )
+
+    def __init__(self, basedir):
+        self.save_path = os.path.join(basedir, 'files', 'status')
         if not os.path.exists(self.save_path):
             os.makedirs(self.save_path)
 

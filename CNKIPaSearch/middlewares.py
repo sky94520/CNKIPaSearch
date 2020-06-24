@@ -6,6 +6,7 @@
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 import os
 import time
+import random
 import logging
 import requests
 from scrapy.http import HtmlResponse
@@ -72,7 +73,7 @@ class RetryOrErrorMiddleware(RetryMiddleware):
         if isinstance(exception, IgnoreRequest):
             return
         # 出现错误，再次请求
-        logger.warning('RetryOrError: %s' % exception)
+        logger.warning(exception)
         PROXY.dirty = True
         return request
 
@@ -147,3 +148,20 @@ class CookieMiddleware(object):
             logger.warning('cookie获取失败')
         return None
 
+
+class UserAgentMiddleware(object):
+    def __init__(self):
+        self.user_agents = [
+            """Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 
+            Safari/537.36""",
+            """Mozilla/5.0 (Windows NT 6.2; WOW64; rv:21.0) Gecko/20100101 Firefox/21.0""",
+            """User-Agent:Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/535.11 (KHTML, 
+            like Gecko)Ubuntu/11.10 Chromium/27.0.1453.93 Chrome/27.0.1453.93 Safari/537.36""",
+            """User-Agent:Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_6; en-US) AppleWebKit/533.20.25 (KHTML, 
+            like Gecko) Version/5.0.4 Safari/533.20.27""",
+            """User-Agent:Opera/9.80 (Windows NT 6.1; WOW64; U; en) Presto/2.10.229 Version/11.62""",
+            """User-Agent:Opera/9.80 (Macintosh; Intel Mac OS X 10.6.8; U; en) Presto/2.9.168 Version/11.52"""
+        ]
+
+    def process_request(self, request, spider):
+        request.headers['User-Agent'] = random.choice(self.user_agents)

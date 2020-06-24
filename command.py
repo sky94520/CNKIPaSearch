@@ -41,7 +41,6 @@ def write_from_xlsx(filename, output_file, pass_line=None, limit=None):
          "applicant": applicant,
          "publishdate_from": date2str(last),
          "publishdate_to": date2str(date=now),
-         "thesis_level": "1",
          }
         for applicant in applicants
     ]
@@ -53,7 +52,7 @@ def write_from_xlsx(filename, output_file, pass_line=None, limit=None):
 
 
 if __name__ == '__main__':
-    filename = '02-方宇.xls'
+    filename = '上海工程技术大学-崔国华.xlsx'
     output = os.path.join('files')
     if not os.path.exists(output):
         os.makedirs(output)
