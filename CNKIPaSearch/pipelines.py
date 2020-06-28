@@ -130,7 +130,6 @@ class FilterArrayPipeline(object):
             # 在解析时出现错误，则报错后移除该item
             logger.error('process [%s] error: %s' % (item['publication_number'], e))
             raise DropItem()
-
         return item
 
 

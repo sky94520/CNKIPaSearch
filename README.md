@@ -34,6 +34,12 @@
 >}
 >```
 >表示搜索主题为5G，并且主分类号为H04L的所有中国专利
+>建议使用专家检索，比如搜索 申请人为```武汉大学```和发明人为```张绍东```：
+>```
+>{
+>   "expertvalue": "SQR='武汉大学' and FMR='张绍东'"
+>}
+>```
 >### CNKIPaSearch.config
 >该配置文件目前仅仅有一个变量，那就是PROXY_URL，用于提供代理：
 >config.py
@@ -139,9 +145,10 @@
 > ProxyMiddleware 使用requests库请求获取代理<br>
 > CookieMiddleware page爬虫专用，设置cookie，会检测spider的cookie是否已经不可用，如果不可用，则重新发起请求获取 <br>
 ## pipeline
-> SaveSearchJsonPipeline 用于把解析出来的搜索数据保存到json文件中<br>
-> SaveSearchHtmlPipeline 保存原始的搜索页面 <br>
-> FilterPipeline detail专属，用于过滤数据，更改数据格式 <br>
-> SaveDetailHtmlPipeline 保存详细专利html页面到本地 <br>
-> SaveDetailJsonPipeline 保存详细专利json数据到本地 <br>
-> MongoPipeline 保存详细专利数据到mongo数据库 <br>
+>| 类名 | 功能 | 存储路径 |
+>| ---- | ---- | ---- |
+>|SaveSearchJsonPipeline| 用于把解析出来的搜索数据保存到json文件中|search/json|
+>|SaveSearchHtmlPipeline| 保存原始的搜索页面| search/json|
+>|FilterPipeline | detail专属，用于过滤数据，更改数据格式| -|
+>|SaveDetailHtmlPipeline| 保存详细专利html页面到本地| detail/html|
+>|SaveDetailJsonPipeline| 保存详细专利json数据到本地| detail/json |
