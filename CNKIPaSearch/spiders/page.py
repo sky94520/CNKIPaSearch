@@ -13,6 +13,7 @@ class PageSpider(scrapy.Spider):
     name = 'page'
     custom_settings = {
         'DOWNLOADER_MIDDLEWARES': {
+            'CNKIPaSearch.middlewares.GetFromLocalityMiddleware': 543,
             'CNKIPaSearch.middlewares.RetryOrErrorMiddleware': 550,
             'CNKIPaSearch.middlewares.ProxyMiddleware': 843,
             'CNKIPaSearch.middlewares.CookieMiddleware': 844,
@@ -105,7 +106,7 @@ class PageSpider(scrapy.Spider):
         base_url = 'http://kns.cnki.net/KNS/brief/brief.aspx'
         url = '%s?%s' % (base_url, urlencode(params))
         meta = {
-            'max_retry_times': self.crawler.settings.get('MAX_RETRY_TIMES')
+            'max_retry_times': self.crawler.settings.get('MAX_RETRY_TIMES'),
         }
         return scrapy.Request(url=url, callback=self.parse, meta=meta, dont_filter=True)
 

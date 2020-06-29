@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_path(spider, path_name):
-    # basedir = spider.settings.get('BASEDIR')
+    """只有page使用的过滤器才会调用该函数"""
     basedir = spider.basedir
     # 数据中含有存在键dirname，那么就以对应的值作为文件名
     if 'dirname' in spider.request_datum:

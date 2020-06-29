@@ -102,4 +102,3 @@ class BaseConfig(object):
     def _update_thesis_level(params, **kwargs):
         """专利类型"""
         params['@thesislevel'] = '专利类别=%s' % kwargs['thesis_level']
-

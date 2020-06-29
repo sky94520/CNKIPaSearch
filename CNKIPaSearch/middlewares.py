@@ -12,8 +12,11 @@ import requests
 from scrapy.http import HtmlResponse
 from scrapy.exceptions import IgnoreRequest
 from scrapy.downloadermiddlewares.retry import RetryMiddleware
+
 from .hownet_config import *
 from .Proxy import Proxy
+from .spiders.page import PageSpider
+from .pipelines import get_path
 
 
 logger = logging.getLogger(__name__)
@@ -29,15 +32,18 @@ class GetFromLocalityMiddleware(object):
         :param spider:
         :return:
         """
-        # 提取出code
-        filename = request.meta['publication_number']
-        # 文件存放位置
-        prefix_path = request.meta['prefix_path']
-        # 该路径存在该文件
-        html_full_path = os.path.join(spider.basedir, 'html', prefix_path, '%s.html' % filename)
-        detail_full_path = os.path.join(spider.basedir, 'json', prefix_path, '%s.json' % filename)
+        # 提取文件路径和名称
+        if isinstance(spider, PageSpider):
+            index = spider.cur_page
+            html_full_path = os.path.join(get_path(spider, 'html'), '%s.html' % index)
+            json_full_path = os.path.join(get_path(spider, 'json'), '%s.json' % index)
+        else:
+            filename = request.meta['publication_number']
+            prefix_path = request.meta['prefix_path']
+            html_full_path = os.path.join(spider.basedir, 'html', prefix_path, '%s.html' % filename)
+            json_full_path = os.path.join(spider.basedir, 'json', prefix_path, '%s.json' % filename)
         # 同时存在，则不再处理该request
-        if os.path.exists(html_full_path) and os.path.exists(detail_full_path):
+        if os.path.exists(html_full_path) and os.path.exists(json_full_path):
             raise IgnoreRequest('json file has exists.')
         if os.path.exists(html_full_path):
             fp = open(html_full_path, 'rb')

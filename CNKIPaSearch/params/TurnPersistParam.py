@@ -9,7 +9,7 @@ class TurnPersistParam(object):
         self.basedir = basedir
         # 保存中断
         self.filename = os.path.join(self.basedir, 'files', 'checkpoint.json')
-        self.request_queue = None  # 队首元素作为当前进行元素
+        self.request_queue = []  # 队首元素作为当前进行元素
         # 进行加载数据
         self.load()
 
@@ -55,5 +55,3 @@ class TurnPersistParam(object):
                 with open(full_filename, 'r', encoding='utf-8') as fp:
                     queue.extend(json.load(fp))
         return queue
-
-
