@@ -14,7 +14,7 @@ import threading
 from pymysql import cursors
 from twisted.enterprise import adbapi
 from scrapy.exceptions import DropItem
-from CNKIPaSearch.config import MYSQL_URI, MYSQL_CONFIG
+from CNKIPaSearch.config import MYSQL_CONFIG
 from CNKIPaSearch.utils.batch import import_patent
 
 
@@ -22,7 +22,8 @@ logger = logging.getLogger(__name__)
 
 
 def get_path(spider, path_name):
-    basedir = spider.settings.get('BASEDIR')
+    # basedir = spider.settings.get('BASEDIR')
+    basedir = spider.basedir
     # 数据中含有存在键dirname，那么就以对应的值作为文件名
     if 'dirname' in spider.request_datum:
         dirname = spider.request_datum['dirname']
@@ -33,7 +34,7 @@ def get_path(spider, path_name):
         dirname = re.sub('/', '-', values[0])
         if len(values) > 1:
             dirname = os.path.join(dirname, ','.join(values[1:]))
-    path = os.path.join(basedir, 'files', path_name, dirname)
+    path = os.path.join(basedir, path_name, dirname)
 
     return path
 
@@ -45,7 +46,7 @@ class SaveSearchJsonPipeline(object):
         if len(item['array']) == 0:
             response = item['response']
             raise DropItem('%s has not any patent' % response.url)
-        path = get_path(spider, 'page_links')
+        path = get_path(spider, 'json')
         index = spider.cur_page
 
         if not os.path.exists(path):
@@ -60,7 +61,7 @@ class SaveSearchJsonPipeline(object):
 class SaveSearchHtmlPipeline(object):
     def process_item(self, item, spider):
         # 文件存储路径
-        path = get_path(spider, 'page')
+        path = get_path(spider, 'html')
         response = item['response']
         index = spider.cur_page
 
@@ -101,7 +102,6 @@ class FilterPipeline(object):
                 elif key in self.int_keys:
                     item[key] = int(value)
             if 'response' in item:
-                item['path'] = item['response'].meta['detail_path']
                 del item['response']
         except Exception as e:
             # 在解析时出现错误，则报错后移除该item
@@ -124,7 +124,6 @@ class FilterArrayPipeline(object):
                     if key in self.text_keys:
                         item['array'][idx][key] = re.sub(self.pattern, ' ', value)
             if 'response' in item:
-                item['path'] = item['response'].meta['detail_path']
                 del item['response']
         except Exception as e:
             # 在解析时出现错误，则报错后移除该item
@@ -133,14 +132,16 @@ class FilterArrayPipeline(object):
         return item
 
 
-class SaveDetailHtmlPipeline(object):
+class SaveHtmlPipeline(object):
+    """detail status 爬虫用"""
     def process_item(self, item, spider):
         response = item['response']
         # 该文件从本地获取，不再重新保存
         if 'load_from_local' in response.meta and response.meta['load_from_local']:
             return item
-
-        path = response.meta['html_path']
+        # 获取完整路径
+        prefix_path = response.meta['prefix_path']
+        path = os.path.join(spider.basedir, 'html', prefix_path)
         publication_number = response.meta['publication_number']
 
         if not os.path.exists(path):
@@ -152,51 +153,12 @@ class SaveDetailHtmlPipeline(object):
         return item
 
 
-class SaveDetailJsonPipeline(object):
-    @classmethod
-    def from_crawler(cls, crawler):
-        return cls(
-            basedir=crawler.settings.get('BASEDIR'),
-        )
-
-    def __init__(self, basedir):
-        self.save_path = os.path.join(basedir, 'files', 'detail')
-        if not os.path.exists(self.save_path):
-            os.makedirs(self.save_path)
-
+class SaveJsonPipeline(object):
+    """detail status 爬虫使用该过滤器"""
     def process_item(self, item, spider):
-        path = self.save_path
-        if 'path' in item:
-            path = item['path']
-            del item['path']
-
-        if not os.path.exists(path):
-            os.makedirs(path)
-
-        filename = os.path.join(path, '%s.json' % item['publication_number'])
-        with open(filename, "w", encoding='utf-8') as fp:
-            fp.write(json.dumps(dict(item), ensure_ascii=False, indent=2))
-        return item
-
-
-class SaveStateJsonPipeline(object):
-    @classmethod
-    def from_crawler(cls, crawler):
-        return cls(
-            basedir=crawler.settings.get('BASEDIR'),
-        )
-
-    def __init__(self, basedir):
-        self.save_path = os.path.join(basedir, 'files', 'status')
-        if not os.path.exists(self.save_path):
-            os.makedirs(self.save_path)
-
-    def process_item(self, item, spider):
-        path = self.save_path
-        if 'path' in item:
-            path = item['path']
-            del item['path']
-
+        prefix_path = item['prefix_path']
+        del item['prefix_path']
+        path = os.path.join(spider.basedir, 'json', prefix_path)
         if not os.path.exists(path):
             os.makedirs(path)
 
@@ -228,11 +190,6 @@ class MySQLDetailPipeline(object):
     def handle_success(self, item):
         """插入数据库成功，才创建文件"""
         path = self.save_path
-        # 通过response来限制最大请求数
-        if 'path' in item:
-            path = item['path']
-            del item['path']
-
         if not os.path.exists(path):
             os.makedirs(path)
 

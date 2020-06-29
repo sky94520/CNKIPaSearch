@@ -19,9 +19,9 @@ class StatusSpider(scrapy.Spider):
             'CNKIPaSearch.middlewares.ProxyMiddleware': 843,
         },
         'ITEM_PIPELINES': {
-            'CNKIPaSearch.pipelines.SaveDetailHtmlPipeline': 300,
+            'CNKIPaSearch.pipelines.SaveHtmlPipeline': 300,
             'CNKIPaSearch.pipelines.FilterArrayPipeline': 301,
-            'CNKIPaSearch.pipelines.SaveStateJsonPipeline': 303,
+            'CNKIPaSearch.pipelines.SaveJsonPipeline': 303,
         }
     }
 
@@ -29,11 +29,18 @@ class StatusSpider(scrapy.Spider):
         super().__init__(**kwargs)
         self.err_count = 0
         self.base_url = 'https://dbpub.cnki.net/GBSearch/SCPDGBSearch.aspx'
+        self.basedir = None
+
+    def start_requests(self):
+        self.basedir = self.settings.get('STATUS_DIR')
+        for datum in self._get_links():
+            yield self._create_request(datum)
 
     def parse(self, response):
         item = StatusItem()
         item['response'] = response
         item['publication_number'] = response.meta['publication_number']
+        item['prefix_path'] = response.meta['prefix_path']
         try:
             tr_list = response.css('table.state tr')
             # 页面结构出现问题，报错
@@ -65,15 +72,10 @@ class StatusSpider(scrapy.Spider):
                 self.logger.error('出错次数为%d，睡眠10 s' % self.err_count)
                 time.sleep(10)
 
-    def start_requests(self):
-        for datum in self._get_links():
-            yield self._create_request(datum)
-
     def _create_request(self, datum):
         url = urljoin(self.base_url, '?ID=%s' % datum['application_number'])
         meta = {
-            'html_path': datum['html_path'],
-            'detail_path': datum['detail_path'],
+            'prefix_path': datum['prefix_path'],
             'max_retry_times': self.crawler.settings.get('MAX_RETRY_TIMES'),
             'publication_number': datum['publication_number'],
         }
@@ -85,24 +87,22 @@ class StatusSpider(scrapy.Spider):
         :return:
         """
         # 获取链接
-        basedir = self.settings.get('BASEDIR')
-        pending_path = os.path.join(basedir, 'files', 'detail')
+        detail_dir = os.path.join(self.settings.get('DETAIL_DIR'), 'json')
         # 遍历整个文件夹
-        for parent, dirnames, filenames in os.walk(pending_path, followlinks=True):
+        for parent, dirnames, filenames in os.walk(detail_dir, followlinks=True):
+            # 获取前缀路径，和page爬虫保持一致
+            common_prefix = os.path.commonprefix([parent, detail_dir])
+            prefix_path = parent[len(common_prefix)+1:]
             # 遍历所有的文件
             for filename in filenames:
                 full_filename = os.path.join(parent, filename)
-                # HTML保存路径和细节保存路径
-                html_path = re.sub('detail', 'status/html', parent)
-                detail_path = re.sub('detail', 'status/detail', parent)
                 # 打开该文件
                 fp = open(full_filename, 'r', encoding='utf-8')
                 json_data = json.load(fp)
                 fp.close()
                 # 解析并yield
                 datum = {
-                    'html_path': html_path,
-                    'detail_path': detail_path,
+                    'prefix_path': prefix_path,
                     'application_number': json_data['application_number'],
                     'publication_number': json_data['publication_number']
                 }

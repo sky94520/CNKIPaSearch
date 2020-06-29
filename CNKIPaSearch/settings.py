@@ -24,6 +24,11 @@ CONCURRENT_REQUESTS = 4
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
 BASEDIR = os.path.realpath(os.path.dirname(os.path.dirname(__file__)))
+# page爬虫爬取数据存放路径
+PAGE_DIR = os.path.join(BASEDIR, 'files', 'page')
+# detail爬虫爬取数据存放路径
+DETAIL_DIR = os.path.join(BASEDIR, 'files', 'detail')
+STATUS_DIR = os.path.join(BASEDIR, 'files', 'status')
 # 最大重试次数
 MAX_RETRY_TIMES = 20
 # 每个页面的专利个数

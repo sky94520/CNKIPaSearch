@@ -19,10 +19,10 @@ class DetailSpider(scrapy.Spider):
             'CNKIPaSearch.middlewares.ProxyMiddleware': 843,
         },
         'ITEM_PIPELINES': {
-            'CNKIPaSearch.pipelines.SaveDetailHtmlPipeline': 300,
+            'CNKIPaSearch.pipelines.SaveHtmlPipeline': 300,
             'CNKIPaSearch.pipelines.FilterPipeline': 301,
             # 'CNKIPaSearch.pipelines.MySQLDetailPipeline': 302,
-            'CNKIPaSearch.pipelines.SaveDetailJsonPipeline': 303,
+            'CNKIPaSearch.pipelines.SaveJsonPipeline': 303,
         }
     }
 
@@ -39,8 +39,10 @@ class DetailSpider(scrapy.Spider):
         # 连续出错计数器
         self.err_count = 0
         self.base_url = 'http://dbpub.cnki.net/grid2008/dbpub/detail.aspx'
+        self.basedir = None
 
     def start_requests(self):
+        self.basedir = self.settings.get('DETAIL_DIR')
         for datum in self._get_links():
             yield self._create_request(datum)
 
@@ -50,24 +52,23 @@ class DetailSpider(scrapy.Spider):
         :return:
         """
         # 获取链接
-        basedir = self.settings.get('BASEDIR')
-        pending_path = os.path.join(basedir, 'files', 'page_links')
+        page_dir = os.path.join(self.settings.get('PAGE_DIR'), 'json')
         # 遍历整个文件夹
-        for parent, dirnames, filenames in os.walk(pending_path, followlinks=True):
+        for parent, dirnames, filenames in os.walk(page_dir, followlinks=True):
+            # 获取前缀路径，和page爬虫保持一致
+            common_prefix = os.path.commonprefix([parent, page_dir])
+            prefix_path = parent[len(common_prefix)+1:]
             # 遍历所有的文件
             for filename in filenames:
                 full_filename = os.path.join(parent, filename)
-                # HTML保存路径和detail保存路径
-                html_path = re.sub('page_links', 'html', parent)
-                detail_path = re.sub('page_links', 'detail', parent)
+                # TODO:HTML保存路径和detail保存路径 (路径其他地方不能出现json)
                 # 打开该文件
                 fp = open(full_filename, 'r', encoding='utf-8')
                 json_data = json.load(fp)
                 fp.close()
                 # 解析并yield
                 for datum in json_data:
-                    datum['html_path'] = html_path
-                    datum['detail_path'] = detail_path
+                    datum['prefix_path'] = prefix_path
                     yield datum
                 self.logger.info('File[%s] has loaded' % full_filename)
 
@@ -75,8 +76,7 @@ class DetailSpider(scrapy.Spider):
         params = {'dbcode': 'scpd', 'dbname': datum['dbname'], 'filename': datum['filename']}
         url = '%s?%s' % (self.base_url, urlencode(params))
         meta = {
-            'html_path': datum['html_path'],
-            'detail_path': datum['detail_path'],
+            'prefix_path': datum['prefix_path'],
             'title': datum['title'],
             'max_retry_times': self.crawler.settings.get('MAX_RETRY_TIMES'),
             'publication_number': datum['filename'],
@@ -87,6 +87,7 @@ class DetailSpider(scrapy.Spider):
         item = PatentItem()
         item['response'] = response
         item['title'] = response.meta['title']
+        item['prefix_path'] = response.meta['prefix_path']
         try:
             # 解析页面结构
             tr_list = response.xpath('//table[@id="box"]/tr')

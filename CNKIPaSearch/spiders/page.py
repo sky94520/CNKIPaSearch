@@ -29,15 +29,16 @@ class PageSpider(scrapy.Spider):
         # 是否请求新的cookie
         self._cookie_dirty, self._cookie = True, None
         self.params = None
+        self.basedir = None
 
     def start_requests(self):
         """
         scrapy会调用该函数获取Request
-        :return:
+        :return: yield request or return None
         """
-        basedir = self.settings.get('BASEDIR')
-        self.logger.info('the file path is %s', basedir)
-        self.params = PagePersistParam(basedir)
+        self.basedir = self.settings.get('PAGE_DIR')
+        self.logger.info('the file path is %s', self.basedir)
+        self.params = PagePersistParam(self.basedir)
         if self.request_queue_empty:
             return None
         # 获取链接的位置
@@ -69,7 +70,7 @@ class PageSpider(scrapy.Spider):
                        math.ceil(total_count / self.settings.get('PATENT_NUMBER_PER_PAGE', 50)))
         # 返回items
         yield item
-        # TODO:开启新的请求
+        # 开启新的请求
         self.params.cur_page += 1
         # 该任务爬取完成，重新请求cookie
         if self.params.cur_page > max_page:

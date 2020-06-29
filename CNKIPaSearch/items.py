@@ -25,7 +25,7 @@ class StatusItem(scrapy.Item):
     # define the fields for your item here like:
     array = scrapy.Field()
     response = scrapy.Field()
-    path = scrapy.Field()
+    prefix_path = scrapy.Field()
     publication_number = scrapy.Field()
 
 
@@ -48,7 +48,8 @@ class PatentItem(scrapy.Item):
     }
     # 保存response
     response = scrapy.Field()
-    path = scrapy.Field()
+    # 路径
+    prefix_path = scrapy.Field()
     # 该url的来源文件
     source = scrapy.Field()
     # 专利名

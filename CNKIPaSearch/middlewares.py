@@ -32,11 +32,10 @@ class GetFromLocalityMiddleware(object):
         # 提取出code
         filename = request.meta['publication_number']
         # 文件存放位置
-        html_path = request.meta['html_path']
-        detail_path = request.meta['detail_path']
+        prefix_path = request.meta['prefix_path']
         # 该路径存在该文件
-        html_full_path = os.path.join(html_path, '%s.html' % filename)
-        detail_full_path = os.path.join(detail_path, '%s.json' % filename)
+        html_full_path = os.path.join(spider.basedir, 'html', prefix_path, '%s.html' % filename)
+        detail_full_path = os.path.join(spider.basedir, 'json', prefix_path, '%s.json' % filename)
         # 同时存在，则不再处理该request
         if os.path.exists(html_full_path) and os.path.exists(detail_full_path):
             raise IgnoreRequest('json file has exists.')

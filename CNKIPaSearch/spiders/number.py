@@ -35,9 +35,9 @@ class NumberSpider(scrapy.Spider):
         scrapy会调用该函数获取Request
         :return:
         """
-        basedir = self.settings.get('BASEDIR')
-        self.logger.info('the file path is %s', basedir)
-        self.params = PagePersistParam(basedir)
+        page_dir = self.settings.get('PAGE_DIR')
+        self.logger.info('the file path is %s', page_dir)
+        self.params = PagePersistParam(page_dir)
         # 获取链接的位置
         request = self._create_request(self.params.cur_page)
         self.logger.info('开始爬取')

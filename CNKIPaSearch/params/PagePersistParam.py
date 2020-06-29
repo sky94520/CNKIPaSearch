@@ -15,12 +15,17 @@ from CNKIPaSearch.hownet_config import FROM_DATE_KEY, TO_DATE_KEY
 
 class PagePersistParam(object):
     """用于page.py的持久化"""
-    def __init__(self, basedir):
+    def __init__(self, basedir, filename='checkpoint.json'):
+        """
+        初始化
+        :param basedir: 路径
+        :param filename: 文件名
+        """
         self.basedir = basedir
         # 保存中断
-        self.filename = os.path.join(self.basedir, 'files', 'page_checkpoint.json')
+        self.filename = os.path.join(self.basedir, filename)
         self.cur_page = 1
-        self.request_queue = None  # 队首元素作为当前进行元素
+        self.request_queue = []  # 队首元素作为当前进行元素
         self.error = []  # 错误的数据
         # 进行加载数据
         self.load()
@@ -120,12 +125,12 @@ class PagePersistParam(object):
 
     def _load_from_dir(self):
         queue = []
-        path = os.path.join(self.basedir, 'files', 'page_pending')
+        path = os.path.join(self.basedir, 'pending')
         if not os.path.exists(path):
             logging.warning('%s not exists' % path)
             return []
 
-        another_path = os.path.join(self.basedir, 'files', 'page_read')
+        another_path = os.path.join(self.basedir, 'read')
         # 遍历整个page_links文件夹 得到待移动的文件
         moving_files = []
         for parent, dirnames, filenames in os.walk(path, followlinks=True):
