@@ -7,7 +7,7 @@ import scrapy
 from urllib.parse import urlencode
 from . import IdentifyingCodeError
 from ..items import NumberItem
-from CNKIPaSearch.params.PagePersistParam import PagePersistParam
+from ..params.PagePersistParam import PagePersistParam
 
 
 class NumberSpider(scrapy.Spider):

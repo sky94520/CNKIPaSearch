@@ -6,10 +6,9 @@ from scrapy.crawler import CrawlerRunner
 from scrapy.utils.log import configure_logging
 from scrapy.utils.project import get_project_settings
 from twisted.internet import defer, reactor
+
 from CNKIPaSearch.settings import PAGE_DIR
-from CNKIPaSearch.spiders.page import PageSpider
-from CNKIPaSearch.spiders.detail import DetailSpider
-from CNKIPaSearch.spiders.status import StatusSpider
+from CNKIPaSearch.spiders import PageSpider, DetailSpider, StatusSpider
 from CNKIPaSearch.params.TurnPersistParam import TurnPersistParam
 
 
@@ -36,7 +35,7 @@ def generate_dirname(datum):
 
 
 @defer.inlineCallbacks
-def crawl():
+def crawl(basedir=basedir):
     yield runner.crawl(PageSpider)
     yield runner.crawl(DetailSpider)
     yield runner.crawl(StatusSpider)

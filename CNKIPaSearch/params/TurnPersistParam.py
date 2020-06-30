@@ -45,7 +45,7 @@ class TurnPersistParam(object):
         queue = []
         path = os.path.join(self.basedir, 'files', 'pending')
         if not os.path.exists(path):
-            logging.warning('%s not exists' % path)
+            logging.warning('%s:%s not exists' % (__file__, path))
             return []
         # 遍历整个page_links文件夹 得到待移动的文件
         for parent, dirnames, filenames in os.walk(path, followlinks=True):

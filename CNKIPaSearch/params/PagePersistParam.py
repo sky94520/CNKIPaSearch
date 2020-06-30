@@ -9,8 +9,8 @@ import json
 import logging
 import shutil
 from datetime import datetime, timedelta
-from CNKIPaSearch.utils import date2str, str2date
-from CNKIPaSearch.hownet_config import FROM_DATE_KEY, TO_DATE_KEY
+from ..utils import date2str, str2date
+from ..hownet_config import FROM_DATE_KEY, TO_DATE_KEY
 
 
 class PagePersistParam(object):

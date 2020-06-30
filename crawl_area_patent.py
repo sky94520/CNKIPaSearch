@@ -3,9 +3,6 @@ from scrapy.crawler import CrawlerRunner
 from scrapy.utils.log import configure_logging
 from scrapy.utils.project import get_project_settings
 from twisted.internet import defer, reactor
-from CNKIPaSearch.spiders.page import PageSpider
-from CNKIPaSearch.spiders.detail import DetailSpider
-from CNKIPaSearch.spiders.status import StatusSpider
 
 
 configure_logging()
@@ -16,9 +13,9 @@ runner = CrawlerRunner(settings)
 
 @defer.inlineCallbacks
 def crawl():
-    yield runner.crawl(PageSpider)
-    yield runner.crawl(DetailSpider)
-    yield runner.crawl(StatusSpider)
+    yield runner.crawl('page')
+    yield runner.crawl('detail')
+    yield runner.crawl('status')
     reactor.stop()
 
 

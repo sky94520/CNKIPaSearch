@@ -12,3 +12,8 @@ class IdentifyingCodeError(Exception):
 
     def __str__(self):
         return self.text
+
+from .page import PageSpider
+from .detail import DetailSpider
+from .number import NumberSpider
+from .status import StatusSpider

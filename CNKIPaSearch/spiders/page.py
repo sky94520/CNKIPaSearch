@@ -5,7 +5,7 @@ import scrapy
 from urllib.parse import urlencode, urlparse, parse_qsl
 from . import IdentifyingCodeError
 from ..items import SearchItem
-from CNKIPaSearch.params.PagePersistParam import PagePersistParam
+from ..params.PagePersistParam import PagePersistParam
 from ..hownet_config import BaseConfig
 
 
@@ -222,6 +222,10 @@ class PageSpider(scrapy.Spider):
         if len(self.params.request_queue) == 0:
             self.params.pop_from_error_queue()
         return self.params.request_queue[0]
+        # datum = self.params.request_queue[0].copy()
+        # if 'dirname' in datum:
+        #     del datum['dirname']
+        # return datum
 
     @property
     def request_queue_empty(self):
