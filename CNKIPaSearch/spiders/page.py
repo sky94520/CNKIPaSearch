@@ -222,10 +222,6 @@ class PageSpider(scrapy.Spider):
         if len(self.params.request_queue) == 0:
             self.params.pop_from_error_queue()
         return self.params.request_queue[0]
-        # datum = self.params.request_queue[0].copy()
-        # if 'dirname' in datum:
-        #     del datum['dirname']
-        # return datum
 
     @property
     def request_queue_empty(self):

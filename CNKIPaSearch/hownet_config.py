@@ -22,7 +22,7 @@ CONDITIONS = {
 
 
 class BaseConfig(object):
-
+    """通过该类设置搜索条件"""
     @staticmethod
     def _get_condition(idx, condition, value):
         result = {
