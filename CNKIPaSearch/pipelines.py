@@ -83,7 +83,7 @@ class FilterPipeline(object):
         self.date_keys = []
         # 去多个换行
         self.text_keys = ['sovereignty', 'summary']
-        self.pattern = re.compile(r'[\n|\r]+')
+        self.pattern = re.compile(r'\s+')
         # 转成int
         self.int_keys = ['page_number']
 
@@ -115,7 +115,7 @@ class FilterArrayPipeline(object):
     def __init__(self):
         # 去除换行
         self.text_keys = ['information']
-        self.pattern = re.compile(r'[\n|\r]+')
+        self.pattern = re.compile(r'\s+')
 
     def process_item(self, item, spider):
         try:

@@ -140,7 +140,6 @@ class PagePersistParam(object):
                 with open(full_filename, 'r', encoding='utf-8') as fp:
                     queue.extend(json.load(fp))
                 moving_files.append(full_filename)
-        self.save()
         # 移动文件
         if not os.path.exists(another_path):
             os.makedirs(another_path)

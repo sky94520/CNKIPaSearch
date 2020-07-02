@@ -42,6 +42,8 @@ class PageSpider(scrapy.Spider):
         self.params = PagePersistParam(self.basedir)
         if self.request_queue_empty:
             return None
+        # 回写checkpoint
+        self.params.save()
         # 获取链接的位置
         request = self._create_request(self.params.cur_page)
         self.logger.info('开始爬取')
@@ -134,27 +136,30 @@ class PageSpider(scrapy.Spider):
         # 解析条目 去掉头
         for index in range(1, length):
             tr = tr_list[index]
-            # 链接
-            link = tr.xpath('./td[2]/a/@href').extract_first()
-            parse_result = urlparse(link)
-            query_tuple = parse_qsl(parse_result[4])
-            datum = {}
-            # 键值对 映射
-            for t in query_tuple:
-                if t[0] in SearchItem.KEYS:
-                    datum[t[0]] = t[1]
-            # TODO: 外部扩展
-            titles = tr.xpath('./td[2]/a//text()').extract()
-            datum['title'] = ''.join(titles)
-            datum['inventor'] = tr.xpath('./td[3]/text()').extract_first()
-            applicants = tr.xpath('./td[4]//text()').extract()
-            datum['applicants'] = ''.join(applicants)
-            datum['application_date'] = tr.xpath('./td[5]/text()').extract_first()
-            datum['publication_date'] = tr.xpath('./td[6]/text()').extract_first()
-
+            # 解析条目
+            datum = self._parse_entry(tr)
             item['array'].append(datum)
 
         return item, total_count
+
+    def _parse_entry(self, tr):
+        link = tr.xpath('./td[2]/a/@href').extract_first()
+        parse_result = urlparse(link)
+        query_tuple = parse_qsl(parse_result[4])
+        datum = {}
+        # 键值对 映射
+        for t in query_tuple:
+            if t[0] in SearchItem.KEYS:
+                datum[t[0]] = t[1]
+        # TODO: 外部扩展
+        titles = tr.xpath('./td[2]/a//text()').extract()
+        datum['title'] = ''.join(titles)
+        datum['inventor'] = tr.xpath('./td[3]/text()').extract_first()
+        applicants = tr.xpath('./td[4]//text()').extract()
+        datum['applicants'] = ''.join(applicants)
+        datum['application_date'] = tr.xpath('./td[5]/text()').extract_first()
+        datum['publication_date'] = tr.xpath('./td[6]/text()').extract_first()
+        return datum
 
     def _get_total_count(self, num_str):
         # 正则提取，并转换成整型
