@@ -19,19 +19,20 @@ runner = CrawlerRunner(settings)
 basedir = os.path.realpath(os.path.dirname(__name__))
 
 
-def generate_dirname(datum):
+def generate_filename(datum):
     """根据字典生成一个文件名"""
     # 数据中含有存在键dirname，那么就以对应的值作为文件名
     if 'dirname' in datum:
         dirname = datum['dirname']
+        filename = re.sub('/', '-', dirname)
     else:
         # 以第一个作为文件名， 其他作为另外的文件名
         values = list(datum.values())
         # 必定存在一个键值对
-        dirname = re.sub('/', '-', values[0])
+        filename = re.sub('/', '-', values[0])
         if len(values) > 1:
-            dirname = os.path.join(dirname, ','.join(values[1:]))
-    return dirname
+            filename = os.path.join(filename, ','.join(values[1:]))
+    return filename
 
 
 @defer.inlineCallbacks
@@ -48,7 +49,7 @@ def crawl(basedir=basedir):
             os.makedirs(page_pending_dir)
         # TODO:获取队列首部数据 dict
         datum = param.pop()
-        dirname = generate_dirname(datum)
+        dirname = generate_filename(datum)
         output_file = os.path.join(page_pending_dir, '%s.json' % dirname)
         with open(output_file, 'w', encoding='utf-8') as fp:
             json.dump([datum], fp, ensure_ascii=False, indent=2)

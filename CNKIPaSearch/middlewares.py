@@ -14,7 +14,7 @@ from scrapy.exceptions import IgnoreRequest
 from scrapy.downloadermiddlewares.retry import RetryMiddleware
 
 from .hownet_config import *
-from .Proxy import Proxy
+from .Proxy import Proxy, GetProxyError
 from .spiders.page import PageSpider
 from .pipelines import get_path
 
@@ -60,7 +60,30 @@ class RetryOrErrorMiddleware(RetryMiddleware):
 
     def _retry(self, request, reason, spider):
         # 获取当前的重试次数
+        return self._process(request, spider)
+
+    def process_exception(self, request, exception, spider):
+        if isinstance(exception, IgnoreRequest):
+            return
+        if isinstance(exception, TimeoutError):
+            return self._process(request, spider)
+        # 代理获取失败，一秒后再访问
+        logger.warning(exception)
+        if isinstance(exception, GetProxyError):
+            time.sleep(1)
+        # 出现错误，再次请求
+        PROXY.dirty = True
+        return request
+
+    def _process(self, request, spider):
+        """
+        处理请求，如果超过最大次数，则在数据队列中删除这个请求，并且会抛出IgnoreRequest异常
+        :param request:
+        :param spider:
+        :return:
+        """
         retry_times = request.meta.get('retry_times', 0) + 1
+        request.meta['retry_times'] = retry_times
         # 最大重试次数
         max_retry_times = self.max_retry_times
         if 'max_retry_times' in request.meta:
@@ -72,15 +95,10 @@ class RetryOrErrorMiddleware(RetryMiddleware):
             spider.request_error()
             # logger.error('%s %s retry times beyond the bounds' % (request.url, datum))
             logger.error('%s retry times beyond the bounds' % request.url)
+            return IgnoreRequest()
+        else:
+            return request
         # super()._retry(request, reason, spider)
-
-    def process_exception(self, request, exception, spider):
-        if isinstance(exception, IgnoreRequest):
-            return
-        # 出现错误，再次请求
-        logger.warning(exception)
-        PROXY.dirty = True
-        return request
 
 
 class ProxyMiddleware(object):
