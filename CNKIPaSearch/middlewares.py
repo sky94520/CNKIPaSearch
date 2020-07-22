@@ -123,6 +123,8 @@ class CookieMiddleware(object):
     def __init__(self):
         # 使用那个类作为配置文件
         self.config = BaseConfig
+        # TODO:
+        self.user_agents = UserAgentMiddleware()
 
     def process_request(self, request, spider):
         # 重新请求cookie
@@ -156,8 +158,10 @@ class CookieMiddleware(object):
         # 动态获取配置类
         params = BaseConfig.get_config_params(values)
         params.update(**kwargs)
-        url = 'http://kns.cnki.net/kns/request/SearchHandler.ashx'
+        # url = 'http://kns.cnki.net/kns/request/SearchHandler.ashx'
+        url = 'http://nvsm.cnki.net/kns/request/SearchHandler.ashx'
         try:
+            # user_agent = self.user_agents.get_random_user_agent()
             response = requests.post(url, params=params, proxies=proxies, timeout=5)
             cookies = requests.utils.dict_from_cookiejar(response.cookies)
 
@@ -168,7 +172,8 @@ class CookieMiddleware(object):
                 cookie_str += text
             return cookie_str
         except Exception as e:
-            logger.warning('cookie获取失败')
+            # logger.warning('cookie获取失败')
+            logger.warning(e)
         return None
 
 
@@ -187,4 +192,7 @@ class UserAgentMiddleware(object):
         ]
 
     def process_request(self, request, spider):
-        request.headers['User-Agent'] = random.choice(self.user_agents)
+        request.headers['User-Agent'] = self.get_random_user_agent()
+
+    def get_random_user_agent(self):
+        return random.choice(self.user_agents)
