@@ -1,18 +1,23 @@
 # 专利页面爬虫(请酌情爬取)
 >本爬虫爬取链接为[知网中国专利](http://nvsm.cnki.net/kns/brief/result.aspx?dbprefix=scpd)
 >注：本项目为v2，第一版参见：[CrawlPage](https://github.com/sky94520/CrawlPage)<br>
->该版本目前可以完全爬取所有专利  
->针对知网专利，本代码主要有两部分:  
->第一个爬虫page.py是根据条件爬取符合条件的专利列表；<br>
->第二个爬虫detail.py则是根据第一个部分得到的专利列表爬取专利的具体信息。<br>
->相关说明<br>
->1. run_page.py 负责启动page爬虫(便于调试)；
+>该版本目前可以爬取所有专利  
+>针对知网专利，本代码主要有4部分:  
+>
+>| 爬虫 | 功能 |
+>| ---- | ---- |
+>| page.py | 根据条件筛选，爬取专利列表|
+>| detail.py |根据专利列表爬取专利的具体信息|
+>|number.py| page.py的改写，用于获取申请人的专利数量|
+>|status.py|根据专利列表获取专利的状态|
+>相关说明  
+>1. run_page.py 负责启动page爬虫(便于调试)  
+>知网的搜索条件是先根据搜索条件得到cookie，当出现验证码的时候重新请求获取cookie或对验证码进行识别（本项目重新进行请求）
+>page爬虫使用了文件(checkpoint json格式文件)作为断点和队列，该文件由PersistParam类自动生成，当需要开启一个新的任务的时候，请删除原先的checkpoint文件；
+>当某一块爬取完成后，page爬虫检查队列是否有数据，有则设置断点，并开始爬取;
 >2. run_detail.py 负责启动detail爬虫(便于调试)；
->3. page爬虫使用了文件(checkpoint json格式文件)作为断点和队列，该文件由PersistParam类自动生成，当需要开启一个新的任务的时候，请删除原先的checkpoint文件；
->4. 当某一块爬取完成后，page爬虫检查队列是否有数据，有则设置断点，并开始爬取;
->5. 知网的搜索条件是得到cookie，相同的搜索条件对应的cookie是相同的;当出现验证码的时候进行重新请求cookie即可（也可以进行识别）
->6. hownet_config.py 提供了一些常用的知网搜索页面配置类，可根据条件自行添加和修改
->7. PagePersistParam.py 该文件主要负责遍历/files/pending/下的所有json格式文件，并把每一个字典作为一个请求，该类用于page爬虫的断点
+>3. hownet_config.py 提供了一些常用的知网搜索页面配置类，可根据条件自行添加和修改
+>4. PagePersistParam.py 该文件主要负责遍历/files/pending/下的所有json格式文件，并把每一个字典作为一个请求，该类用于page爬虫的断点
 ##文件夹
 >files文件夹目录说明:
 >```
@@ -32,7 +37,7 @@
 >└─checkpoint.json 检查点  
 >``
 ## 配置文件
->### pending/ *.json 或者 page_pending/ *.json
+>pending/ *.json 或者 page/pending/ *.json
 >```
 >{
 >   "keyword": "5G",
@@ -41,7 +46,7 @@
 >}
 >```
 >表示搜索主题为5G，并且主分类号为H04L的所有中国专利
->建议使用专家检索，比如搜索 申请人为```武汉大学```和发明人为```张绍东```：
+>也可以使用专家检索，比如搜索 申请人为```武汉大学```和发明人为```张绍东```：
 >```
 >{
 >   "expertvalue": "SQR='武汉大学' and FMR='张绍东'"
@@ -56,8 +61,8 @@
 >代理目前主要是由Proxy类进行提供，同一时刻仅仅使用一个代理，当这个代理不可用的时候，才会重新进行请求
 >目前使用的为[代理精灵](http://http.zhiliandaili.com/Index-getapi.html)  
 >配置如下：
->![avatar][proxy.png]
->### hownet_config.py(目前该文件已废弃)
+>![alt 代理精灵配置 选择json和IP:Port](proxy.png)
+>### hownet_config.py
 >该文件用来保存知网的各个搜索条件的配置，目前根据输入的字典的键来自动匹配配置类
 >比如pending文件夹的内容格式为：
 >```
@@ -111,9 +116,8 @@
 >```
 >则以东南大学作为文件夹的名称
 >### 1.3 问题
->1. 目前的爬虫仅仅能爬取6000个数据，多的数据可以根据不同的搜索条件进行爬取
->2. [错误twisted.internet.error.TimeoutError: User timeout caused connection failure](https://blog.csdn.net/xiongzaiabc/article/details/89840730)
->3. 目前会根据环境中的config变量来获取到不同的配置文件
+>1. [错误twisted.internet.error.TimeoutError: User timeout caused connection failure](https://blog.csdn.net/xiongzaiabc/article/details/89840730)
+>2. 目前会根据环境中的config变量来获取到不同的配置文件
 ## 2.detail 专利[基础信息]爬虫
 >### 2.1 思路
 >run_detail.py可以开启detail爬虫,
