@@ -206,6 +206,25 @@ class MySQLDetailPipeline(object):
         self.db_pool.close()
 
 
+class MySQLPatentStatusPipeline(object):
+
+    def __init__(self):
+        self.db_pool = adbapi.ConnectionPool('pymysql', cursorclass=cursors.DictCursor, **MYSQL_CONFIG)
+
+    def process_item(self, item, spdier):
+        copy = dict(item)
+        query = self.db_pool.runInteraction(import_patent, copy)
+        query.addErrback(self.handle_error)
+        return DropItem()
+
+    def handle_error(self, failure):
+        """插入数据库失败回调函数"""
+        logger.error(failure)
+
+    def close_spider(self, spider):
+        self.db_pool.close()
+
+
 class SaveNumberCsvPipeline(object):
     @classmethod
     def from_crawler(cls, crawler):

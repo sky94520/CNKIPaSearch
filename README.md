@@ -61,7 +61,7 @@
 >主要由Proxy类提供代理，当前的逻辑是同一时刻仅仅使用一个代理，当这个代理不可用的时候，才会重新进行请求
 >目前使用的为[代理精灵](http://http.zhiliandaili.com/Index-getapi.html)  
 >配置如下：
->![alt 代理精灵配置 选择json和IP:Port](proxy.png)
+>![alt 代理精灵配置: IP协议：HTTP/HTTPS 数据格式: json 选择属性：IP:Port](proxy.png)
 >如果想要把数据存储到mysql中，还需要配置MySQL，比如：
 >```
 >MYSQL_CONFIG = {
@@ -191,3 +191,25 @@
 >|FilterPipeline | detail专属，用于过滤数据，更改数据格式| -|
 >|SaveDetailHtmlPipeline| 保存详细专利html页面到本地| detail/html|
 >|SaveDetailJsonPipeline| 保存详细专利json数据到本地| detail/json |
+>
+>### MySQLDetailPipeline
+>多线程插入专利到数据库，使用adbapi创建数据库连接池
+>```
+># MYSQL_CONFIG为dict，格式同上
+>db_pool = adbapi.ConnectionPool('pymysql', cursorclass=cursors.DictCursor, **MYSQL_CONFIG)
+>```
+>然后在process_item中插入到数据库
+>```
+>def process_item(self, item, spdier):
+>    # 减小数据量,见详解
+>    copy = dict(item)
+>    # 成功则调用self.handle_success，否则则调用handle_error
+>    query = self.db_pool.runInteraction(import_patent, copy, self.handle_success)
+>    query.addErrback(self.handle_error)
+>    return DropItem()
+>```
+>import_patent函数的参数为```(cursor, item, success_callback)```  
+>当在import_patent中发生错误时，将会调用handle_error函数。  
+>注：import_patent函数是消费者，而爬虫则是生产者，当爬取专利的速度大于
+>插入专利的速度时，将会导致内存占用越来越高，该问题目前只能通过把数据转换为dict，但
+>只是延缓内存增长的速度，并没有解决该问题。
