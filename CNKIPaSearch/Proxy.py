@@ -1,6 +1,5 @@
-import logging
 import requests
-from .config import PROXY_URL
+from config import PROXY_URL
 
 
 class GetProxyError(Exception):

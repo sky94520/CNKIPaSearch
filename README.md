@@ -52,16 +52,26 @@
 >   "expertvalue": "SQR='武汉大学' and FMR='张绍东'"
 >}
 >```
->### CNKIPaSearch.config
->该配置文件目前仅仅有一个变量，那就是PROXY_URL，用于提供代理：
->config.py
+>### config.py
+>该配置文件用于一些敏感的数据项  
+>PROXY_URL，用于提供代理，比如
 >```
 >PROXY_URL = '127.0.0.1:5555/random'
 >```
->代理目前主要是由Proxy类进行提供，同一时刻仅仅使用一个代理，当这个代理不可用的时候，才会重新进行请求
+>主要由Proxy类提供代理，当前的逻辑是同一时刻仅仅使用一个代理，当这个代理不可用的时候，才会重新进行请求
 >目前使用的为[代理精灵](http://http.zhiliandaili.com/Index-getapi.html)  
 >配置如下：
 >![alt 代理精灵配置 选择json和IP:Port](proxy.png)
+>如果想要把数据存储到mysql中，还需要配置MySQL，比如：
+>```
+>MYSQL_CONFIG = {
+>    'user': 'root',
+>    'password': 'qweryty1234',
+>    'database': 'ren_db',
+>    'host': '127.0.0.1',
+>    'port': 3306,
+>}
+>```
 >### hownet_config.py
 >该文件用来保存知网的各个搜索条件的配置，目前根据输入的字典的键来自动匹配配置类
 >比如pending文件夹的内容格式为：

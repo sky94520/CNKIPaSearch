@@ -14,7 +14,7 @@ import threading
 from pymysql import cursors
 from twisted.enterprise import adbapi
 from scrapy.exceptions import DropItem
-from CNKIPaSearch.config import MYSQL_CONFIG
+from config import MYSQL_CONFIG
 from CNKIPaSearch.utils.batch import import_patent
 
 
