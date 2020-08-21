@@ -1,6 +1,6 @@
 # 专利页面爬虫(请酌情爬取)
 >本爬虫爬取链接为[知网中国专利](http://nvsm.cnki.net/kns/brief/result.aspx?dbprefix=scpd)
->注：本项目为v2，第一版参见：[CrawlPage](https://github.com/sky94520/CrawlPage)<br>
+>注：本项目为v2，第一版参见：[CrawlPage](https://github.com/sky94520/CrawlPage)  
 >该版本目前可以爬取所有专利  
 >针对知网专利，本代码主要有4部分:  
 >
@@ -9,7 +9,7 @@
 >| page.py | 根据条件筛选，爬取专利列表|
 >| detail.py |根据专利列表爬取专利的具体信息|
 >|number.py| page.py的改写，用于获取申请人的专利数量|
->|status.py|根据专利列表获取专利的状态|
+>|status.py|根据专利申请号获取专利的状态|
 >相关说明  
 >1. run_page.py 负责启动page爬虫(便于调试)  
 >知网的搜索条件是先根据搜索条件得到cookie，当出现验证码的时候重新请求获取cookie或对验证码进行识别（本项目重新进行请求）
@@ -193,7 +193,8 @@
 >|SaveDetailJsonPipeline| 保存详细专利json数据到本地| detail/json |
 >
 >### MySQLDetailPipeline
->多线程插入专利到数据库，使用adbapi创建数据库连接池
+>多线程插入专利到数据库，使用adbapi  
+>首先需要创建数据库连接池
 >```
 ># MYSQL_CONFIG为dict，格式同上
 >db_pool = adbapi.ConnectionPool('pymysql', cursorclass=cursors.DictCursor, **MYSQL_CONFIG)
@@ -210,6 +211,35 @@
 >```
 >import_patent函数的参数为```(cursor, item, success_callback)```  
 >当在import_patent中发生错误时，将会调用handle_error函数。  
+>专利的表结构如下所示：
+>
+>| id |title|application_number|application_date|main_cls_number|category|address|area_code|
+>|----|---- |       ----       |       ----     |    ----       |  ----  | ----  |----|
+>|int|标题|申请号，唯一|申请日期|主分类号|类别|地址|国省代码|
+>解释：
+> 1. 申请号：  
+>举例:```CN 2013 1 0426350 .X```  
+>申请号唯一,前两位为国别，之后有12位阿拉伯数字，包括申请年份4位、申请种类（第5位）和申请流水号（6-12）三个部分。最后一位(.bit)则是计算机给予的校验码（防止人工输入号码发生错误的情况）
+> 2. int类型：1发明专利、2实用新型、3外观设计、8PCT发明专利、9PCT实用新型  
+> 3.未保存：  
+>公开号:组成方式为“国别号+分类号+流水号+标识代码”，如CN 1 340998A，表示中国的第340998号发明专利。A：发明专利申请公告 B：发明专利授权公告。U 实用新型授权；S外观设计授权；  
+>代理机构、代理人、公开日期
+>
 >注：import_patent函数是消费者，而爬虫则是生产者，当爬取专利的速度大于
 >插入专利的速度时，将会导致内存占用越来越高，该问题目前只能通过把数据转换为dict，但
 >只是延缓内存增长的速度，并没有解决该问题。
+>### MySQLPatentStatusPipeline
+>多线程插入专利状态到数据库
+>表结构：
+>
+>|id|status|publication_date|information|patent_id|
+>|----|----|----|----|----|
+>|id|若干种|发布日期|说明|对应专利|
+>
+>解释:  
+>1. status  
+>有63种，大致分为了公开、实质审查的生效、授权、专利权的终止、失效(驳回、撤回)、更换专利权人
+>2. information  
+>详细说明，比如更换专利权人:  
+>```专利申请权的转移 IPC(主分类):D01F   9/12 登记生效日:20171115 变更事项:申请人 变更前权利人:湖南大学 变更后权利人:湖南东映碳材料科技有限公司 变更事项:地址 变更前权利人:410082 湖南省长沙市岳麓区麓山南路2号 变更后权利人:410000 湖南省长沙市高新?```
+>目前并未充分利用到patent_status表
