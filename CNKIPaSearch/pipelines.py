@@ -77,7 +77,7 @@ class FilterPipeline(object):
     """清除特殊字符"""
     def __init__(self):
         # 字符串转为数组
-        self.array_keys = ['inventor', 'patent_cls_number', 'agent', 'applicant', 'joint_applicant']
+        self.array_keys = ['inventor', 'agent', 'applicant', 'joint_applicant']
         # TODO:字符串转为datetime
         # self.date_keys = ['application_date', 'publication_date']
         self.date_keys = []
@@ -86,6 +86,8 @@ class FilterPipeline(object):
         self.pattern = re.compile(r'\s+')
         # 转成int
         self.int_keys = ['page_number']
+        # 部 大类 小类 组，比如H01R107/00 或 01-01
+        self.pattern = re.compile(r'[A-Z]\d+[A-Z]\d+/\d+|\d+-\d+')
 
     def process_item(self, item, spider):
         try:
@@ -96,6 +98,8 @@ class FilterPipeline(object):
                     for v in value.split(';'):
                         if len(v) > 0:
                             item[key].append(v)
+                elif key == 'patent_cls_number':
+                    item[key] = re.findall(self.pattern, value)
                 elif key in self.date_keys:
                     item[key] = datetime.datetime.strptime(value, '%Y-%m-%d')
                 elif key in self.text_keys:
