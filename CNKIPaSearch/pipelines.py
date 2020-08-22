@@ -36,7 +36,6 @@ def get_path(spider, path_name):
         if len(values) > 1:
             dirname = os.path.join(dirname, ','.join(values[1:]))
     path = os.path.join(basedir, path_name, dirname)
-
     return path
 
 
@@ -91,6 +90,7 @@ class FilterPipeline(object):
     def process_item(self, item, spider):
         try:
             for key, value in item.items():
+                # 数据转化数组
                 if key in self.array_keys:
                     item[key] = []
                     for v in value.split(';'):

@@ -2,6 +2,22 @@ import logging
 from . import select_one, select, insert_many, insert, delete
 
 
+def import_patent(cursor, item, success_callback, spider):
+    application_number = item['application_number']
+    # 通过application_number保证唯一
+    back = _get_patent_by_application_number(cursor, application_number)
+    if back:
+        return success_callback(item, spider)
+    # 插入专利 专利文本和专利发明人
+    patent_id = _insert_patent(cursor, item)
+    # 插入专利和对应的IPC
+    _insert_patent_ipc(cursor, patent_id, item['patent_cls_number'])
+    # 插入专利和申请人
+    _insert_patent_applicants(cursor, patent_id, item['applicant'])
+    # 插入成功回调函数
+    return success_callback(item, spider)
+
+
 def _get_patent_by_application_number(cursor, application_number):
     """根据专利申请号，获取专利数据"""
     get_patent_sql = 'select application_number from patent where application_number=?'
@@ -31,20 +47,20 @@ def _insert_patent(cursor, item):
     publication_date = item['publication_date']
     main_cls_number = item['main_cls_number']
     category = _get_category_of_patent(application_number)
-    address = item['address']
-    area_code = item['code']
-    inventors = item['inventor']
-    summary = item['summary']
-    sovereignty = item['sovereignty']
     # 插入专利数据
     insert_sql = """insert into patent(title,application_number,publication_number,publication_date,
     application_date,main_cls_number, category) values(?,?,?,?,?,?,?)"""
     patent_id = insert(cursor, insert_sql, title, application_number, publication_number, publication_date,
                        application_date, main_cls_number, category)
     # 专利-发明人
+    inventors = item['inventor']
     insert_inventor_sql = """insert into inventor(name,patent_id) values(?,?)"""
     insert_many(cursor, insert_inventor_sql, *[(inventor, patent_id) for inventor in inventors])
     # 专利-专利文本
+    address = item['address']
+    area_code = item['code']
+    summary = item['summary']
+    sovereignty = item['sovereignty']
     insert_text_sql = """insert into patent_text(summary,sovereignty, address, area_code, patent_id) values(?,?,?,?,?)"""
     insert(cursor, insert_text_sql, summary, sovereignty, address, area_code, patent_id)
     return patent_id
@@ -76,21 +92,3 @@ def _insert_patent_applicants(cursor, patent_id, applicants):
     insert_app_patent_sql = """insert into applicant_patent(applicant_id, patent_id) values(?,?)"""
     insert_many(cursor, insert_app_patent_sql,
                 *[(applicant_id, patent_id) for applicant_id in applicant_id_mapping.values()])
-
-
-def import_patent(cursor, item, success_callback, spider):
-    application_number = item['application_number']
-    # 通过application_number保证唯一
-    back = _get_patent_by_application_number(cursor, application_number)
-    if back:
-        return success_callback(item, spider)
-    # 插入专利 专利文本和专利发明人
-    patent_id = _insert_patent(cursor, item)
-    # 插入专利和对应的IPC
-    _insert_patent_ipc(cursor, patent_id, item['patent_cls_number'])
-    # 插入专利和申请人
-    _insert_patent_applicants(cursor, patent_id, item['applicant'])
-    # 插入成功回调函数
-    return success_callback(item, spider)
-
-
