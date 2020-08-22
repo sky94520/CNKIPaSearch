@@ -15,7 +15,8 @@ from pymysql import cursors
 from twisted.enterprise import adbapi
 from scrapy.exceptions import DropItem
 from config import MYSQL_CONFIG
-from CNKIPaSearch.utils.batch import import_patent
+from CNKIPaSearch.utils.patent import import_patent
+from .spiders.patent import PatentSpider
 
 
 logger = logging.getLogger(__name__)
@@ -181,18 +182,19 @@ class MySQLDetailPipeline(object):
         if not os.path.exists(self.save_path):
             os.makedirs(self.save_path)
 
-    def process_item(self, item, spdier):
+    def process_item(self, item, spider):
         copy = dict(item)
-        query = self.db_pool.runInteraction(import_patent, copy, self.handle_success)
+        query = self.db_pool.runInteraction(import_patent, copy, self.handle_success, spider)
         query.addErrback(self.handle_error)
         return DropItem()
 
-    def handle_success(self, item):
-        """插入数据库成功，才创建文件"""
+    def handle_success(self, item, spider):
+        if isinstance(spider, PatentSpider):
+            return
         path = self.save_path
         if not os.path.exists(path):
             os.makedirs(path)
-
+        # 创建文件
         filename = os.path.join(path, '%s.json' % item['publication_number'])
         with open(filename, "w", encoding='utf-8') as fp:
             fp.write(json.dumps(dict(item), ensure_ascii=False, indent=2))

@@ -9,7 +9,7 @@ import time
 import random
 import logging
 import requests
-from scrapy.http import HtmlResponse
+from scrapy.http import HtmlResponse, TextResponse
 from scrapy.exceptions import IgnoreRequest
 from scrapy.downloadermiddlewares.retry import RetryMiddleware
 
@@ -53,6 +53,29 @@ class GetFromLocalityMiddleware(object):
             request.meta['load_from_local'] = True
             return HtmlResponse(url=request.url, headers=request.headers, body=body, request=request)
         return None
+
+
+class LoadJsonFromLocalityMiddleware(object):
+    """从本地加载json文件"""
+    def process_request(self, request, spider):
+        """
+        尝试从本地获取源文件，如果存在，则直接获取
+        :param request:
+        :param spider:
+        :return:
+        """
+        filename = request.meta['publication_number']
+        path = request.meta['path']
+        full_filename = os.path.join(path, '%s.json' % filename)
+        # 从本地读取文件
+        if os.path.exists(full_filename):
+            fp = open(full_filename, 'rb')
+            body = fp.read()
+            fp.close()
+            # 从本地加载的文件不再重新写入
+            request.meta['load_from_local'] = True
+            return TextResponse(url=request.url, headers=request.headers, body=body, request=request)
+        return IgnoreRequest('not found the file:%s' % full_filename)
 
 
 class RetryOrErrorMiddleware(RetryMiddleware):

@@ -1,3 +1,4 @@
+import os
 import logging
 from datetime import datetime
 
@@ -89,3 +90,21 @@ def _delete(cursor, sql, *args):
 
 def delete(cursor, sql, *args):
     return _delete(cursor, sql, *args)
+
+
+def read_files_from_path(path, followlinks=True, suffix=None):
+    """
+    读取path下的所有文件，生成迭代器，返回完整文件名
+    :param path: 路径名称
+    :param followlinks: True or False 是否跟进
+    :param suffix: 是否限制扩展名
+    :return: 返回完整文件名
+    """
+    # 遍历文件夹 得到里面所有的文件
+    for parent, dirnames, filenames in os.walk(path, followlinks=followlinks):
+        # 遍历所有的文件
+        for filename in filenames:
+            # 限制扩展名
+            if suffix is not None and not filename.endswith(suffix):
+                continue
+            yield parent, filename
