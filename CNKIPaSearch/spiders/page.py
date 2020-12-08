@@ -2,27 +2,28 @@
 import re
 import math
 import scrapy
+import logging
 from urllib.parse import urlencode, urlparse, parse_qsl
-from . import IdentifyingCodeError
-from ..items import SearchItem
+from . import IdentifyingCodeError, CrawlStrategyError
+from ..items import SearchItem, NumberItem
 from ..params.PagePersistParam import PagePersistParam
 from ..hownet_config import BaseConfig
 
 
 class PageSpider(scrapy.Spider):
     name = 'page'
-    custom_settings = {
-        'DOWNLOADER_MIDDLEWARES': {
-            'CNKIPaSearch.middlewares.GetFromLocalityMiddleware': 543,
-            'CNKIPaSearch.middlewares.RetryOrErrorMiddleware': 550,
-            'CNKIPaSearch.middlewares.ProxyMiddleware': 843,
-            'CNKIPaSearch.middlewares.CookieMiddleware': 844,
-        },
-        'ITEM_PIPELINES': {
-            'CNKIPaSearch.pipelines.SaveSearchJsonPipeline': 300,
-            'CNKIPaSearch.pipelines.SaveSearchHtmlPipeline': 301,
-        }
-    }
+    # custom_settings = {
+    #     'DOWNLOADER_MIDDLEWARES': {
+    #         'CNKIPaSearch.middlewares.GetFromLocalityMiddleware': 543,
+    #         'CNKIPaSearch.middlewares.RetryOrErrorMiddleware': 550,
+    #         'CNKIPaSearch.middlewares.ProxyMiddleware': 843,
+    #         'CNKIPaSearch.middlewares.CookieMiddleware': 844,
+    #     },
+    #     'ITEM_PIPELINES': {
+    #         'CNKIPaSearch.pipelines.SaveSearchJsonPipeline': 300,
+    #         'CNKIPaSearch.pipelines.SaveSearchHtmlPipeline': 301,
+    #     }
+    # }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -31,6 +32,8 @@ class PageSpider(scrapy.Spider):
         self._cookie_dirty, self._cookie = True, None
         self.params = None
         self.basedir = None
+        # 爬取策略 分为page爬取和number爬取
+        self.crawl_strategy = 'page' if 'crawl_strategy' not in kwargs else kwargs['crawl_strategy']
 
     def start_requests(self):
         """
@@ -50,11 +53,10 @@ class PageSpider(scrapy.Spider):
         if request:
             yield request
 
-    def parse(self, response):
+    def parse(self, response, **kwargs):
         """
         从页面提取数据并进行处理
         :param response:
-        :return:
         """
         self.logger.info('正在爬取')
         # 解析页面，如果出现验证码则重新请求
@@ -65,14 +67,35 @@ class PageSpider(scrapy.Spider):
             self._cookie_dirty = True
             yield self._create_request(self.params.cur_page)
             return
-        # 发出请求，获取年份 专利数量
-        if total_count > self.settings.get('MAX_PATENT_NUM'):
-            yield self._create_group_request()
+        # 爬取策略错误，直接退出
+        except CrawlStrategyError as e:
+            self.logger.error(e)
             return
-        max_page = min(120,
-                       math.ceil(total_count / self.settings.get('PATENT_NUMBER_PER_PAGE', 50)))
-        # 返回items
-        yield item
+        # 分为两种策略 number，只统计数字 page 则正常爬取
+        if self.crawl_strategy == 'number':
+            yield item
+            yield self.crawl_by_number_strategy()
+        elif self.crawl_strategy == 'page':
+            # 发出请求，获取年份 专利数量
+            if total_count > self.settings.get('MAX_PATENT_NUM'):
+                yield self._create_group_request()
+                return
+            max_page = min(120,
+                           math.ceil(total_count / self.settings.get('PATENT_NUMBER_PER_PAGE', 50)))
+            yield item
+            yield self.crawl_by_page_strategy(max_page)
+
+    def crawl_by_number_strategy(self):
+        # 开始新的一个
+        self._cookie_dirty = True
+        self.params.request_success()
+        # 回写checkpoint
+        self.params.save()
+        if len(self.params.request_queue) == 0:
+            return None
+        return self._create_request(self.params.cur_page)
+
+    def crawl_by_page_strategy(self, max_page):
         # 开启新的请求
         self.params.cur_page += 1
         # 该任务爬取完成，重新请求cookie
@@ -83,7 +106,7 @@ class PageSpider(scrapy.Spider):
         self.params.save()
         if self.request_queue_empty:
             return None
-        yield self._create_request(self.params.cur_page)
+        return self._create_request(self.params.cur_page)
 
     def _create_request(self, cur_page):
         """
@@ -124,23 +147,31 @@ class PageSpider(scrapy.Spider):
             raise IdentifyingCodeError('出现验证码')
         total_count = self._get_total_count(pager)
         self.logger.info('the total count is %d' % total_count)
-        # 专利条目数组
-        tr_list = response.xpath("//table[@class='GridTableContent']//tr")
-        length = len(tr_list)
-        # 这个分类的当前页面条目个数确实为0 爬取完成
-        if length == 0:
-            return None
-        item = SearchItem()
-        item['response'] = response
-        item['array'] = []
-        # 解析条目 去掉头
-        for index in range(1, length):
-            tr = tr_list[index]
-            # 解析条目
-            datum = self._parse_entry(tr)
-            item['array'].append(datum)
-
-        return item, total_count
+        # 统计number
+        if self.crawl_strategy == 'number':
+            item = NumberItem()
+            item['name'] = self.request_datum['applicant']
+            item['number'] = total_count
+            return item, total_count
+        elif self.crawl_strategy == 'page':
+            # 专利条目数组
+            tr_list = response.xpath("//table[@class='GridTableContent']//tr")
+            length = len(tr_list)
+            # 这个分类的当前页面条目个数确实为0 爬取完成
+            if length == 0:
+                return None
+            item = SearchItem()
+            item['response'] = response
+            item['array'] = []
+            # 解析条目 去掉头
+            for index in range(1, length):
+                tr = tr_list[index]
+                # 解析条目
+                datum = self._parse_entry(tr)
+                item['array'].append(datum)
+            return item, total_count
+        else:
+            raise CrawlStrategyError(self.crawl_strategy)
 
     def _parse_entry(self, tr):
         link = tr.xpath('./td[2]/a/@href').extract_first()

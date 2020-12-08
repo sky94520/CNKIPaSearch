@@ -3,8 +3,8 @@ from datetime import datetime, timedelta
 
 class ThesisLevel(object):
     """
-    专利类型 发明公开、外观设计、实用新型和发明授权 并未用到
-    TODO: 必须是字符串
+    专利类型 发明公开、外观设计、实用新型和发明授权
+    TODO: 必须是字符串 目前并未用到，只是起到提醒作用`
     """
     INVENT_PATENT = 1
     DESIGN_PATENT = 2
@@ -12,8 +12,13 @@ class ThesisLevel(object):
     GRANTED_PATENT = 4
 
 
+# 公开日
 FROM_DATE_KEY = 'date_gkr_from'
 TO_DATE_KEY = 'date_gkr_to'
+# 申请日
+FROM_PUBLISH_DATE_KEY = 'publishdate_from'
+TO_PUBLISH_DATE_KEY = 'publishdate_to'
+
 CONDITIONS = {
     'applicant': 'SQR',
     'keyword': 'SU$%=|',
@@ -42,9 +47,16 @@ class BaseConfig(object):
             params['expertvalue'] = datum['expertvalue']
         else:
             BaseConfig._advanced_search(params, datum)
-        # 公开日
-        if FROM_DATE_KEY in datum and TO_DATE_KEY in datum:
-            BaseConfig._update_gkr(params, **datum)
+        # ---公开日---
+        if FROM_DATE_KEY in datum:
+            params[FROM_DATE_KEY] = datum[FROM_DATE_KEY]
+        if TO_DATE_KEY in datum:
+            params[TO_DATE_KEY] = datum[TO_DATE_KEY]
+        # --- 申请日---
+        if FROM_PUBLISH_DATE_KEY in datum:
+            params[FROM_PUBLISH_DATE_KEY] = datum[FROM_DATE_KEY]
+        if TO_PUBLISH_DATE_KEY in datum:
+            params[TO_PUBLISH_DATE_KEY] = datum[TO_PUBLISH_DATE_KEY]
         # 专利类型
         if 'thesis_level' in datum:
             BaseConfig._update_thesis_level(params, **datum)
@@ -92,11 +104,6 @@ class BaseConfig(object):
             "__": BaseConfig._get_now_gmt_time()
         }
         return params
-
-    @staticmethod
-    def _update_gkr(params, **kwargs):
-        params[FROM_DATE_KEY] = kwargs[FROM_DATE_KEY]
-        params[TO_DATE_KEY] = kwargs[TO_DATE_KEY]
 
     @staticmethod
     def _update_thesis_level(params, **kwargs):

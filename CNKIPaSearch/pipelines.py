@@ -28,6 +28,14 @@ def get_path(spider, path_name):
     # 数据中含有存在键dirname，那么就以对应的值作为文件名
     if 'dirname' in spider.request_datum:
         dirname = spider.request_datum['dirname']
+        # 加上date-gkr-from date-gkr-to
+        name = ''
+        if 'date_gkr_from' in spider.request_datum:
+            name = spider.request_datum['date_gkr_from']
+        if 'date_gkr_to' in spider.request_datum:
+            name = '%s %s' % (name, spider.request_datum['date_gkr_to'])
+        if len(name) != 0:
+            dirname = os.path.join(dirname, name)
     else:
         # 以第一个作为文件名， 其他作为另外的文件名
         values = list(spider.request_datum.values())
@@ -244,26 +252,24 @@ class SaveNumberCsvPipeline(object):
         self.json_data = []
         save_path = os.path.join(basedir, 'files')
         self.filename = os.path.join(save_path, 'list_quantity.csv')
-        # 读取断点数据
         if not os.path.exists(save_path):
             os.makedirs(save_path)
+        # 读取，添加，重写(断点保存)
         elif os.path.exists(self.filename):
             fp = open(self.filename, 'r')
-            reader = csv.DictReader(fp, fieldnames=self.fieldnames)
+            reader = csv.DictReader(fp)
             for idx, datum in enumerate(reader):
-                if idx == 0:
-                    continue
                 datum['number'] = int(datum['number'])
                 self.json_data.append(datum)
             fp.close()
 
     def process_item(self, item, spider):
         self.json_data.append({
-            'name': item['name']['applicant'],
+            'name': item['name'],
             'number': item['number'],
         })
         # TODO: 每次都写入
-        sorted(self.json_data, key=lambda x: x['number'], reverse=True)
+        self.json_data = sorted(self.json_data, key=lambda x: x['number'], reverse=True)
         fp = open(self.filename, 'w', encoding='gb2312', newline='')
         writer = csv.DictWriter(fp, fieldnames=self.fieldnames)
         writer.writeheader()

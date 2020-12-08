@@ -92,6 +92,7 @@ class RetryOrErrorMiddleware(RetryMiddleware):
             return self._process(request, spider)
         # 代理获取失败，一秒后再访问
         logger.warning(exception)
+        # TODO:不起作用 原因见README
         if isinstance(exception, GetProxyError):
             time.sleep(1)
         # 出现错误，再次请求

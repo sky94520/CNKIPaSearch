@@ -21,8 +21,8 @@ class DetailSpider(scrapy.Spider):
         'ITEM_PIPELINES': {
             'CNKIPaSearch.pipelines.SaveHtmlPipeline': 300,
             'CNKIPaSearch.pipelines.FilterPipeline': 301,
-            'CNKIPaSearch.pipelines.MySQLDetailPipeline': 302,
-            # 'CNKIPaSearch.pipelines.SaveJsonPipeline': 303,
+            # 'CNKIPaSearch.pipelines.MySQLDetailPipeline': 302,
+            'CNKIPaSearch.pipelines.SaveJsonPipeline': 303,
         }
     }
 

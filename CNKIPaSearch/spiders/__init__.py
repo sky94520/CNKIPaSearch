@@ -13,7 +13,16 @@ class IdentifyingCodeError(Exception):
     def __str__(self):
         return self.text
 
+
+class CrawlStrategyError(Exception):
+    """爬取策略出错"""
+    def __init__(self, strategy):
+        self.strategy = strategy
+
+    def __str__(self):
+        return 'invalid crawl strategy, only [page | number], but got %s' % self.strategy
+
+
 from .page import PageSpider
 from .detail import DetailSpider
-from .number import NumberSpider
 from .status import StatusSpider
