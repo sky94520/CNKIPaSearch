@@ -5,7 +5,6 @@
 # See documentation in:
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 import os
-import time
 import random
 import logging
 import requests
@@ -94,7 +93,7 @@ class RetryOrErrorMiddleware(RetryMiddleware):
         logger.warning(exception)
         # TODO:不起作用 原因见README
         if isinstance(exception, GetProxyError):
-            time.sleep(1)
+            pass
         # 出现错误，再次请求
         PROXY.dirty = True
         return request
@@ -166,7 +165,6 @@ class CookieMiddleware(object):
                 # cookie获取失败，更换代理重新获取
                 if cookie is None or len(cookie) == 0:
                     PROXY.dirty = True
-                    time.sleep(1)
             spider.cookie = cookie
         # 赋值cookie
         request.headers['Cookie'] = spider.cookie

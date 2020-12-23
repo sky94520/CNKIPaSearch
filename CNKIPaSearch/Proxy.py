@@ -1,3 +1,4 @@
+import time
 import requests
 from config import PROXY_URL
 
@@ -15,12 +16,18 @@ class Proxy(object):
     def __init__(self):
         self._proxy = None
         self.dirty = True
+        self.start = 0
 
     def get_proxy(self):
+        # 之前的代理不可用
         if self.dirty or self._proxy is None:
+            # 时间间隔为1秒，避免频繁获取
+            if time.time() - self.start < 1.0:
+                time.sleep(time.time() - self.start)
             self._proxy = self._get_random_proxy()
             if self._proxy:
                 self.dirty = False
+                self.start = time.time()
         return self._proxy
 
     def _get_random_proxy(self):
