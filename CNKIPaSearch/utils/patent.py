@@ -1,4 +1,3 @@
-import logging
 from . import select_one, select, insert_many, insert, delete
 
 
