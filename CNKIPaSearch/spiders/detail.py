@@ -12,19 +12,20 @@ from ..items import PatentItem
 
 class DetailSpider(scrapy.Spider):
     name = 'detail'
-    custom_settings = {
-        'DOWNLOADER_MIDDLEWARES': {
-            'CNKIPaSearch.middlewares.GetFromLocalityMiddleware': 543,
-            'CNKIPaSearch.middlewares.RetryOrErrorMiddleware': 550,
-            'CNKIPaSearch.middlewares.ProxyMiddleware': 843,
-        },
-        'ITEM_PIPELINES': {
-            'CNKIPaSearch.pipelines.SaveHtmlPipeline': 300,
-            'CNKIPaSearch.pipelines.FilterPipeline': 301,
-            # 'CNKIPaSearch.pipelines.MySQLDetailPipeline': 302,
-            'CNKIPaSearch.pipelines.SaveJsonPipeline': 303,
-        }
-    }
+    # 该配置已经移交到外部
+    # custom_settings = {
+    #     'DOWNLOADER_MIDDLEWARES': {
+    #         'CNKIPaSearch.middlewares.GetFromLocalityMiddleware': 543,
+    #         'CNKIPaSearch.middlewares.RetryOrErrorMiddleware': 550,
+    #         'CNKIPaSearch.middlewares.ProxyMiddleware': 843,
+    #     },
+    #     'ITEM_PIPELINES': {
+    #         'CNKIPaSearch.pipelines.SaveHtmlPipeline': 300,
+    #         'CNKIPaSearch.pipelines.FilterPipeline': 301,
+    #         # 'CNKIPaSearch.pipelines.MySQLDetailPipeline': 302,
+    #         'CNKIPaSearch.pipelines.SaveJsonPipeline': 303,
+    #     }
+    # }
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):
@@ -38,7 +39,8 @@ class DetailSpider(scrapy.Spider):
         self.pattern = re.compile(r'.*?【(.*?)】.*?')
         # 连续出错计数器
         self.err_count = 0
-        self.base_url = 'http://dbpub.cnki.net/grid2008/dbpub/detail.aspx'
+        # self.base_url = 'http://dbpub.cnki.net/grid2008/dbpub/detail.aspx'
+        self.base_url = 'http://nvsm.cnki.net/KCMS/detail/detail.aspx'
         self.basedir = None
 
     def start_requests(self):
@@ -83,54 +85,54 @@ class DetailSpider(scrapy.Spider):
         }
         return Request(url=url, callback=self.parse, meta=meta)
 
-    def parse(self, response):
+    def parse(self, response, **kwargs):
         item = PatentItem()
         item['response'] = response
         item['title'] = response.meta['title']
         item['prefix_path'] = response.meta['prefix_path']
         try:
             # 解析页面结构
-            tr_list = response.xpath('//table[@id="box"]/tr')
-            tr_index, tr_length = 0, len(tr_list)
+            content_div = response.xpath('//div[@class="brief"]')
+            # 结构化数据
+            row_list = content_div.xpath('./div[@class="row"]')
             # 页面结构出现问题，报错
-            if tr_length is 0:
-                raise ValueError('not found table[@id="box"]')
-            # 去掉最后一个tr 最后一个tr
-            while tr_index < tr_length:
-                td_list = tr_list[tr_index].xpath('./td')
-                index, length, real_key = 0, len(td_list), None
-
-                while index < length:
-                    # 提取出文本
-                    text_list = td_list[index].xpath('.//text()').extract()
-                    text = ''.join(text_list).strip()
-                    # 已经有key，则text为对应的value
-                    if real_key:
-                        item[real_key], real_key = text, None
-                    # 过滤掉长度为0的键
-                    elif len(text) > 0:
-                        # 正则未提取到任何值 则键发生问题
-                        result = re.search(self.pattern, text)
-                        if result is None:
-                            if real_key is not None:
-                                raise
-                        else:
-                            key = result.group(1)
-                            # 对应的键 没有则跳过下一个
-                            if key in PatentItem.mapping:
-                                real_key = PatentItem.mapping[key]
-                            else:
-                                index += 1
-                    index += 1
-                tr_index += 1
+            if len(row_list) is 0:
+                raise ValueError('not found //div[@class="brief"]/div[@class="row"]')
+            row_index = 0
+            while row_index < len(row_list):
+                # 检测是否存在<div class="row-1"> 的节点，是则扩充
+                row = row_list[row_index]
+                # 解析
+                key = row.xpath('./span/text()').re_first(r'\s*(.*?)：.*')
+                values = row.xpath('./p[@class="funds"]//text()').extract()
+                # 未解析出键值对，必有子节点
+                if key is None and len(values) == 0:
+                    row_1 = row.xpath('./div[@class="row-1"]')
+                    row_2 = row.xpath('./div[@class="row-2"]')
+                    if len(row_1) == 1 and len(row_2) == 1:
+                        row_list.append(row_1[0])
+                        row_list.append(row_2[0])
+                    # else:
+                    #     self.logger.error('%s页面解析出错:' % (response.meta['title']))
+                else:
+                    real_key = PatentItem.mapping[key]
+                    values = [value.strip() for value in values if value.strip() != 0]
+                    item[real_key] = ''.join(values).strip()
+                row_index += 1
+            # 标题、摘要、主权项
+            # title = content_div.xpath('./div[@class="wx-tit"]/h1/text()').extract()
+            sovereignty = content_div.css('.claim-text::text').extract()
+            summary = content_div.css('.abstract-text::text').extract()
+            item['sovereignty'] = ''.join(sovereignty).strip()
+            item['summary'] = ''.join(summary).strip()
             yield item
             self.err_count = 0
         # 页面解析错误，重试
         except Exception as e:
             self.logger.error('%s页面解析出错: %s, 重试' % (response.meta['title'], e))
-            # TODO:当出错超过5次后，则睡眠5min后再请求
+            # TODO:当出错超过5次后，则睡眠一段时间后再请求
             self.err_count += 1
             if self.err_count >= 5:
-                self.err_count = 0
                 self.logger.error('出错次数为%d，睡眠10 s' % self.err_count)
+                self.err_count = 0
                 time.sleep(10)

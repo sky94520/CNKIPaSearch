@@ -40,7 +40,7 @@ class CNKIExpertSearch(object):
 
     def make_and_save(self, industry_code):
         txt = self.make(industry_code)
-        json_data = [{'expertvalue': txt}]
+        json_data = [{'expertvalue': txt, 'dirname': industry_code}]
         # 文件路径
         pending = os.path.join(PAGE_DIR, 'pending')
         if not os.path.exists(pending):

@@ -1,4 +1,5 @@
 import os
+import json
 import logging
 from datetime import datetime
 
@@ -108,3 +109,11 @@ def read_files_from_path(path, followlinks=True, suffix=None):
             if suffix is not None and not filename.endswith(suffix):
                 continue
             yield parent, filename
+
+
+def write_json(path, filename, json_data):
+    if not os.path.exists(path):
+        os.makedirs(path)
+    # 创建文件
+    with open(filename, "w", encoding='utf-8') as fp:
+        fp.write(json.dumps(json_data, ensure_ascii=False, indent=2))
