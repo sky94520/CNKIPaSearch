@@ -97,7 +97,7 @@ class FilterPipeline(object):
         # 转成int
         self.int_keys = ['page_number']
         # 部 大类 小类 组，比如H01R107/00 或 01-01
-        self.pattern = re.compile(r'[A-Z]\d+[A-Z]\d+/\d+|\d+-\d+')
+        self.cls_pattern = re.compile(r'[A-Z]\d+[A-Z]\d+/\d+|\d+-\d+')
 
     def process_item(self, item, spider):
         try:
@@ -109,7 +109,7 @@ class FilterPipeline(object):
                         if len(v) > 0:
                             item[key].append(v)
                 elif key == 'patent_cls_number':
-                    item[key] = re.findall(self.pattern, value)
+                    item[key] = re.findall(self.cls_pattern, value)
                 elif key in self.date_keys:
                     item[key] = datetime.datetime.strptime(value, '%Y-%m-%d')
                 elif key in self.text_keys:
