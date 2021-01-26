@@ -5,41 +5,28 @@
 """
 import os
 import json
-import pymysql
 
-from config import MYSQL_CONFIG
 from CNKIPaSearch.settings import PAGE_DIR
-from tools.ipc_getter import IPCGetter
+from tools.strategic_emerging_industry import StrategicEmergingIndustry
 
 
 class CNKIExpertSearch(object):
     """CNKI 专家搜索"""
-    def __init__(self):
-        self.connection = pymysql.connect(**MYSQL_CONFIG)
-
-    def __del__(self):
-        self.connection.close()
-
     def make(self, keywords, ipc_codes):
         """
-        根据行业代码构造表达式
-        :return:
+        根据关键字和IPC构造表达式
+        :return: 返回构造好的表达式
         """
-        # 获取行业关键字
-        # keywords = self.get_industry_keywords(industry_code)
-        # 获取行业对应的ipc code
-        # ipc_codes = self.get_ipc_codes_of_industry(industry_code)
         # 生成表达式
         title = 'TI = ( %s )' % '+'.join(keywords)
         abstract = 'AB = ( %s )' % '+'.join(keywords)
         ipc_codes = ["'%s'" % code for code, is_full_equivalence in ipc_codes]
         ipc_code = 'CLC = (%s)' % '+'.join(ipc_codes)
         txt = '({title} OR {abstract}) AND {ipc_code}'.format(title=title, abstract=abstract, ipc_code=ipc_code)
-        # txt = '({title} OR {abstract})'.format(title=title, abstract=abstract)
         return txt
 
     def make_and_save(self, sei_code, industry_code):
-        getter = IPCGetter(sei_code)
+        getter = StrategicEmergingIndustry(sei_code)
         industries = getter.get_industries_of_sei()
         is_full_equivalence = False
         for industry in industries:

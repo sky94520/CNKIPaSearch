@@ -9,7 +9,7 @@ from config import MYSQL_CONFIG
 from CNKIPaSearch.utils import select, select_one
 
 
-class IPCGetter(object):
+class StrategicEmergingIndustry(object):
     """根据战略性新兴产业-国民经济行业-IPC 获取对应的IPC"""
     def __init__(self, sei_code):
         self.sei_code = sei_code
@@ -52,36 +52,36 @@ class IPCGetter(object):
         """
         results = set()
         data = self._get_ipc_codes_of_sei(industry_code)
-        ipc_codes = self.unify_ipc_codes(data, is_full_equivalence)
+        ipc_codes = self.extend_ipc_codes(data, is_full_equivalence)
         for code, is_full_equivalence in ipc_codes.items():
             results.add((code, is_full_equivalence))
         return results
 
-    def unify_ipc_codes(self, ipc_codes, is_full_equivalence):
-        """把IPC代码定位到大组"""
+    def extend_ipc_codes(self, ipc_codes, is_full_equivalence):
+        """把IPC代码定位到大组和小组"""
         results = {}
-        sub_classes, sub_groups = {}, {}
+        sub_classes, groups = {}, {}
         for ipc in ipc_codes:
             code, depth = ipc['code'], ipc['depth']
             is_full_equivalence = is_full_equivalence and ipc['is_full_equivalence']
-            # 小类 => 大组
             if depth == 2:
                 sub_classes[code] = is_full_equivalence
-            # 大组
             elif depth == 3:
+                groups[code] = is_full_equivalence
                 results[code] = is_full_equivalence
-            # 小组 => 大组
             else:
-                sub_groups[code] = is_full_equivalence
-        # 对于小类，获取大组
+                results[code] = is_full_equivalence
+        # 对于小类，先获取大组
         if sub_classes:
             temp = self._get_ipc_code_by_parent_codes(sub_classes)
             for code, is_full_equivalence in temp.items():
+                groups[code] = is_full_equivalence
+        # 根据大组，再获取小组
+        if groups:
+            sub_groups = self._get_ipc_code_by_parent_codes(groups)
+            # 添加到results中
+            for code, is_full_equivalence in sub_groups.items():
                 results[code] = is_full_equivalence
-        for code in sub_groups:
-            idx = code.find('/')
-            code = code[:idx] + '/00'
-            results[code] = is_full_equivalence
         return results
 
     def _get_ipc_codes_of_sei(self, industry_code):
