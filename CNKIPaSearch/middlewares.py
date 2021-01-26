@@ -15,6 +15,7 @@ from scrapy.downloadermiddlewares.retry import RetryMiddleware
 from .hownet_config import *
 from .Proxy import Proxy, GetProxyError
 from .spiders.page import PageSpider
+from .spiders import NotFoundError
 from .pipelines import get_path
 
 
@@ -184,8 +185,11 @@ class CookieMiddleware(object):
         url = 'http://nvsm.cnki.net/kns/request/SearchHandler.ashx'
         try:
             # user_agent = self.user_agents.get_random_user_agent()
-            response = requests.post(url, params=params, proxies=proxies, timeout=5)
+            response = requests.post(url, params, proxies=proxies, timeout=5)
             cookies = requests.utils.dict_from_cookiejar(response.cookies)
+
+            if response.status_code == 404:
+                raise NotFoundError(404)
 
             cookie_str = ""
             for key in cookies:

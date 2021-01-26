@@ -23,6 +23,15 @@ class CrawlStrategyError(Exception):
         return 'invalid crawl strategy, only [page | number], but got %s' % self.strategy
 
 
+class NotFoundError(Exception):
+    """错误"""
+    def __init__(self, status_code):
+        self.status_code = status_code
+
+    def __str__(self):
+        return 'the response.status code is:%d' % self.status_code
+
+
 from .page import PageSpider
 from .detail import DetailSpider
 from .status import StatusSpider

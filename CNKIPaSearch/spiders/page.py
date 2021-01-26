@@ -2,7 +2,6 @@
 import re
 import math
 import scrapy
-import logging
 from urllib.parse import urlencode, urlparse, parse_qsl
 from . import IdentifyingCodeError, CrawlStrategyError
 from ..items import SearchItem, NumberItem
@@ -115,20 +114,22 @@ class PageSpider(scrapy.Spider):
         :return: request 返回请求
         """
         params = {
+            'curpage': cur_page,
+            'RecordsPerPage': self.settings.get('PATENT_NUMBER_PER_PAGE', 50),
+            'QueryID': 2,
             'ID': '',
+            'turnpage': 1,
             'tpagemode': 'L',
             'dbPrefix': 'SCPD',
             'Fields': '',
             'DisplayMode': 'listmode',
             'PageName': 'ASP.brief_result_aspx',
             'isinEn': 0,
-            'QueryID': 3,
-            'sKuaKuID': 3,
-            'turnpage': 1,
-            'RecordsPerPage': self.settings.get('PATENT_NUMBER_PER_PAGE', 50),
-            'curpage': cur_page,
+            'dbCatalog': '中国专利数据库',
+            'ConfigFile': 'SCPD.xml',
         }
-        base_url = 'http://kns.cnki.net/KNS/brief/brief.aspx'
+        # base_url = 'http://kns.cnki.net/KNS/brief/brief.aspx'
+        base_url = 'http://nvsm.cnki.net/kns/brief/brief.aspx'
         url = '%s?%s' % (base_url, urlencode(params))
         meta = {
             'max_retry_times': self.crawler.settings.get('MAX_RETRY_TIMES'),
