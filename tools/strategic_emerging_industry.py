@@ -40,8 +40,12 @@ class StrategicEmergingIndustry(object):
         """
         with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
             datum = select_one(cursor, sql, self.sei_code, industry_code)
-            keywords = datum['keywords'].split('|')
-            return keywords
+            if datum['keywords']:
+                keywords = datum['keywords'].split('|')
+                keywords = [keyword.strip() for keyword in keywords]
+                return keywords
+            else:
+                return []
 
     def get_ipc_codes_of_industry(self, industry_code, is_full_equivalence):
         """
@@ -64,8 +68,10 @@ class StrategicEmergingIndustry(object):
         for ipc in ipc_codes:
             code, depth = ipc['code'], ipc['depth']
             is_full_equivalence = is_full_equivalence and ipc['is_full_equivalence']
+            # 小类=>大组
             if depth == 2:
                 sub_classes[code] = is_full_equivalence
+            # 大组 直接添加
             elif depth == 3:
                 groups[code] = is_full_equivalence
                 results[code] = is_full_equivalence
@@ -76,12 +82,6 @@ class StrategicEmergingIndustry(object):
             temp = self._get_ipc_code_by_parent_codes(sub_classes)
             for code, is_full_equivalence in temp.items():
                 groups[code] = is_full_equivalence
-        # 根据大组，再获取小组
-        if groups:
-            sub_groups = self._get_ipc_code_by_parent_codes(groups)
-            # 添加到results中
-            for code, is_full_equivalence in sub_groups.items():
-                results[code] = is_full_equivalence
         return results
 
     def _get_ipc_codes_of_sei(self, industry_code):
@@ -129,3 +129,33 @@ class StrategicEmergingIndustry(object):
             data = select(cursor, sql)
         results = [datum['code'] for datum in data]
         return results
+
+    def get_not_enough_tagging_sei_codes(self, threshold):
+        """
+        从数据库获取少于threshold专利数量的战略性新兴产业
+        :param threshold:
+        :return:
+        """
+        sql = """
+        select sei_code from sei_patent
+        join strategic_emerging_industry sei on sei.code=sei_code
+        where sei.is_exist_patent=1 and LEFT(sei.code,1) <> '3'
+        GROUP BY sei_code HAVING count(*) < ?
+        union
+        select sei2.code from strategic_emerging_industry sei2 where sei2.parent_code in 
+        (
+        select sei_code count from sei_patent
+        join strategic_emerging_industry sei on sei.code=sei_code
+        where sei.is_exist_patent=1 and LEFT(sei.code,1) = '3'
+        GROUP BY sei_code HAVING count(*) < ?)
+        """
+        with self.connection.cursor(pymysql.cursors.DictCursor) as cursor:
+            data = select(cursor, sql,threshold, threshold)
+            sei_codes = [datum['sei_code'] for datum in data]
+            sql = """
+            select sei_code, industry_code from sei_industry where sei_code in (%s)
+            """
+            words = ['?'] * len(sei_codes)
+            sql = sql % ','.join(words)
+            data = select(cursor, sql, *sei_codes)
+            return data

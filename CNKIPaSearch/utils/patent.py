@@ -41,9 +41,9 @@ def _insert_patent(cursor, item):
     """插入数据到专利表"""
     title = item['title']
     application_number = item['application_number']
-    publication_number = item['publication_number']
+    publication_number = item['publication_number'] if 'publication_number' in item else None
     application_date = item['application_date']
-    publication_date = item['publication_date']
+    publication_date = item['publication_date'] if 'publication_date' in item else None
     main_cls_number = item['main_cls_number']
     category = _get_category_of_patent(application_number)
     # 插入专利数据
@@ -60,8 +60,11 @@ def _insert_patent(cursor, item):
     area_code = item['code']
     summary = item['summary']
     sovereignty = item['sovereignty']
-    insert_text_sql = """insert into patent_text(summary,sovereignty, address, area_code, patent_id) values(?,?,?,?,?)"""
-    insert(cursor, insert_text_sql, summary, sovereignty, address, area_code, patent_id)
+    insert_text_sql = """
+    insert into patent_text(title,summary,sovereignty, address, area_code, patent_id, application_number)
+     values(?,?,?,?,?,?,?)
+     """
+    insert(cursor, insert_text_sql, title, summary, sovereignty, address, area_code, patent_id, application_number)
     return patent_id
 
 

@@ -157,12 +157,12 @@ class SaveHtmlPipeline(object):
         # 获取完整路径
         prefix_path = response.meta['prefix_path']
         path = os.path.join(spider.basedir, 'html', prefix_path)
-        publication_number = response.meta['publication_number']
+        application_number = item['application_number']
 
         if not os.path.exists(path):
             os.makedirs(path)
 
-        filename = os.path.join(path, '%s.html' % publication_number)
+        filename = os.path.join(path, '%s.html' % application_number)
         with open(filename, "wb") as fp:
             fp.write(response.body)
         return item
@@ -203,7 +203,10 @@ class MySQLDetailPipeline(object):
         """在插入数据库成功后，会写入到文件"""
         if isinstance(spider, PatentSpider):
             return
-        path = self.save_path
+        path = os.path.join(self.save_path, 'json')
+        if 'prefix_path' in item:
+            path = os.path.join(path, item['prefix_path'])
+            del item['prefix_path']
         # 写入文件
         filename = os.path.join(path, '%s.json' % item['application_number'])
         write_json(path, filename, dict(item))

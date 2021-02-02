@@ -128,7 +128,6 @@ class PageSpider(scrapy.Spider):
             'dbCatalog': '中国专利数据库',
             'ConfigFile': 'SCPD.xml',
         }
-        # base_url = 'http://kns.cnki.net/KNS/brief/brief.aspx'
         base_url = 'http://nvsm.cnki.net/kns/brief/brief.aspx'
         url = '%s?%s' % (base_url, urlencode(params))
         meta = {
@@ -151,7 +150,10 @@ class PageSpider(scrapy.Spider):
         # 统计number
         if self.crawl_strategy == 'number':
             item = NumberItem()
-            item['name'] = self.request_datum['applicant']
+            if 'dirname' in self.request_datum:
+                item['name'] = self.request_datum['dirname']
+            else:
+                item['name'] = self.request_datum['applicant']
             item['number'] = total_count
             return item, total_count
         elif self.crawl_strategy == 'page':
