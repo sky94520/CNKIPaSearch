@@ -28,7 +28,7 @@ class PatentSpider(scrapy.Spider):
         for path, filename in generator:
             yield self._create_request(path, filename)
 
-    def parse(self, response):
+    def parse(self, response, **kwargs):
         # 提取json
         json_data = json.loads(response.text)
         item = PatentItem()

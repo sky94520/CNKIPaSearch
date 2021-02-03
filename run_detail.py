@@ -39,4 +39,4 @@ def start_spider(is_saving_db=False):
 
 
 if __name__ == '__main__':
-    start_spider(is_saving_db=True)
+    start_spider(is_saving_db=False)
