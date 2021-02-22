@@ -13,6 +13,7 @@ itemadapter==0.1.0
 itemloaders==1.0.2
 jmespath==0.10.0
 lxml==4.5.2
+numpy==1.19.5
 parsel==1.6.0
 Protego==0.1.16
 pyasn1==0.4.8
@@ -22,11 +23,13 @@ PyDispatcher==2.0.5
 PyHamcrest==2.0.2
 PyMySQL==0.10.0
 pyOpenSSL==19.1.0
+python-dateutil==2.8.1
 queuelib==1.5.0
 requests==2.24.0
 Scrapy==2.3.0
 service-identity==18.1.0
 six==1.15.0
+tqdm==4.56.0
 Twisted==20.3.0
 urllib3==1.25.10
 w3lib==1.22.0

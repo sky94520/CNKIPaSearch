@@ -2,6 +2,7 @@
 import re
 import math
 import scrapy
+import numpy as np
 from urllib.parse import urlencode, urlparse, parse_qsl
 from . import IdentifyingCodeError, CrawlStrategyError
 from ..items import SearchItem, NumberItem
@@ -234,8 +235,13 @@ class PageSpider(scrapy.Spider):
                 number_str = span.xpath('./text()').extract_first("(0)")
                 number = int(number_str[1:-1])
                 numbers.append(number)
+        # 年份按顺序增加
+        sort_indices = np.argsort(years)
+        years = np.array(years)[sort_indices]
+        numbers = np.array(numbers)[sort_indices]
         # 交给PersistParam
-        print(years, numbers)
+        print(years)
+        print(numbers)
         self.params.set_groups(years, numbers, self.settings.get('MAX_PATENT_NUM'))
         # 写入，并重新发起请求
         self.params.save()
