@@ -9,17 +9,18 @@ from CNKIPaSearch.utils import date2str
 from CNKIPaSearch.hownet_config import FROM_DATE_KEY, TO_DATE_KEY
 
 
-if __name__ == '__main__':
+def export_school(is_last_10_years=True):
     filename = os.path.join(BASEDIR, 'files', 'schools.csv')
     fp = open(filename, 'r', encoding='utf-8')
     reader = csv.DictReader(fp)
     json_data = []
     for datum in reader:
         # 添加申请日 开始时间和结束时间
-        to_date = datetime.now()
-        from_date = to_date - relativedelta(years=10)
-        datum[FROM_DATE_KEY] = date2str(date=from_date)
-        datum[TO_DATE_KEY] = date2str(date=to_date)
+        if is_last_10_years:
+            to_date = datetime.now()
+            from_date = to_date - relativedelta(years=10)
+            datum[FROM_DATE_KEY] = date2str(date=from_date)
+            datum[TO_DATE_KEY] = date2str(date=to_date)
         json_data.append(datum)
     fp.close()
 
@@ -28,3 +29,7 @@ if __name__ == '__main__':
         os.makedirs(path)
     with open(os.path.join(path, 'applicants.json'), 'w', encoding='utf-8') as fp:
         json.dump(json_data, fp, ensure_ascii=False, indent=1)
+
+
+if __name__ == '__main__':
+    export_school(False)

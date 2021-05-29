@@ -27,10 +27,13 @@ class PageSpider(scrapy.Spider):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # 正则匹配出检索专利数量
         self.pattern = r'\d+(\,\d+)*'
         # 是否请求新的cookie
         self._cookie_dirty, self._cookie = True, None
+        # 持久化断点类
         self.params = None
+        # 基础工作路径
         self.basedir = None
         # 爬取策略 分为page爬取和number爬取
         self.crawl_strategy = 'page' if 'crawl_strategy' not in kwargs else kwargs['crawl_strategy']

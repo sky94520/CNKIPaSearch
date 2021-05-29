@@ -46,4 +46,4 @@ def start_spider(crawl_strategy='page'):
 
 
 if __name__ == '__main__':
-    start_spider('page')
+    start_spider('number')

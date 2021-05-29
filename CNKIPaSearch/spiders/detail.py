@@ -36,7 +36,7 @@ class DetailSpider(scrapy.Spider):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.pattern = re.compile(r'.*?【(.*?)】.*?')
+        # self.pattern = re.compile(r'.*?【(.*?)】.*?')
         # 连续出错计数器
         self.err_count = 0
         # self.base_url = 'http://dbpub.cnki.net/grid2008/dbpub/detail.aspx'

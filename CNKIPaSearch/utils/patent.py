@@ -4,8 +4,8 @@ from . import select_one, select, insert_many, insert, delete
 def import_patent(cursor, item, success_callback, spider):
     application_number = item['application_number']
     # 通过application_number保证唯一
-    back = _get_patent_by_application_number(cursor, application_number)
-    if back:
+    is_exist = _get_patent_by_application_number(cursor, application_number)
+    if is_exist:
         return success_callback(item, spider)
     # 插入专利 专利文本和专利发明人
     patent_id = _insert_patent(cursor, item)

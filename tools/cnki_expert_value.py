@@ -62,7 +62,7 @@ class CNKIExpertSearch(object):
             json.dump(json_data, fp, ensure_ascii=False, indent=2)
 
 
-if __name__ == '__main__':
+def make_total_sei_codes(patent_count):
     # TODO：在数据库获取少于一定标注数据的
     sei = StrategicEmergingIndustry('1.1.1')
     data = sei.get_not_enough_tagging_sei_codes(300)
@@ -72,9 +72,9 @@ if __name__ == '__main__':
     json_data = []
     for datum in tqdm(data):
         sei_code, industry_code = datum['sei_code'], datum['industry_code']
+        dirname = '{}-{}'.format(sei_code, industry_code)
         # 生成专家表达式
         expert_value = search.make(sei_code, industry_code)
-        dirname = '{}-{}'.format(sei_code, industry_code)
         if len(expert_value) == 0:
             print('{}生成表达式失败'.format(dirname))
             continue
@@ -85,3 +85,12 @@ if __name__ == '__main__':
     # 文件路径
     full_filename = os.path.join(PAGE_DIR, 'pending', 'sei.json')
     search.save_json(json_data, full_filename)
+
+
+if __name__ == '__main__':
+    sei_code, industry_code = '1.2.1', '3832'
+    dirname = '{}-{}'.format(sei_code, industry_code)
+    # 生成专家表达式
+    search = CNKIExpertSearch()
+    expert_value = search.make(sei_code, industry_code)
+    print(expert_value)
