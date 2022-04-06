@@ -30,7 +30,7 @@ Scrapy==2.3.0
 service-identity==18.1.0
 six==1.15.0
 tqdm==4.56.0
-Twisted==20.3.0
+Twisted==22.2.0
 urllib3==1.25.10
 w3lib==1.22.0
 zope.interface==5.1.0
